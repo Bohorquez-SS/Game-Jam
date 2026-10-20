@@ -162,6 +162,7 @@ namespace GNight.EditorTools
             CharacterAnim ma;
             var mb = Character("double", chars, Vector3.zero, 0f, "Reflejo_Cuerpo", false, out ma);
             mirror.body = mb.transform; mirror.bodyAnim = ma;
+            SetLayer(mb, GNLayers.Mirror);   // solo lo ve la cámara del espejo (también en el editor)
 
             // --- puntos de escena
             hallFigure = Group("Figura_Pasillo", chars, new Vector3(4.15f, 0, 0f), -90f);

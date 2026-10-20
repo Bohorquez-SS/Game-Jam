@@ -76,7 +76,7 @@ namespace GNight
         }
 
         /// <summary>Mueve cuerpo y cámara suavemente (cinemáticas: levantarse, acostarse, esconderse).</summary>
-        public IEnumerator MoveCamera(Vector3 bodyPos, float toYaw, float toPitch, float eye, float toRoll, float duration)
+        public IEnumerator MoveCamera(Vector3 bodyPos, float toYaw, float toPitch, float eye, float toRoll, float duration, bool collideAfter = true)
         {
             cc.enabled = false;
             Vector3 p0 = transform.position; float y0 = yaw, pi0 = pitch, e0 = curEye, r0 = roll;
@@ -94,7 +94,9 @@ namespace GNight
             eyeOverride = eye;
             transform.rotation = Quaternion.Euler(0, yaw, 0);
             ApplyCamera(0f, true);
-            cc.enabled = true;
+            // Dentro de un escondite NO se reactiva la colisión: el CharacterController quedaría metido en el collider
+            // del mueble y Unity lo expulsaría (a veces a través de la pared, fuera de la casa).
+            cc.enabled = collideAfter;
         }
 
         /// <summary>Gira la mirada hacia un punto (llamar cada frame en cinemáticas).</summary>

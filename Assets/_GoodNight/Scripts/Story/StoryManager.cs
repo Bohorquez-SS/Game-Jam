@@ -23,6 +23,7 @@ namespace GNight
         public Stage stage = Stage.None;
 
         readonly HashSet<string> flags = new HashSet<string>();
+        public IEnumerable<string> Flags => flags;
         bool Has(string f) => flags.Contains(f);
         bool Set(string f) => flags.Add(f);
 

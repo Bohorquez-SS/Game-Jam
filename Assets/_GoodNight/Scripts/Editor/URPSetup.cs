@@ -79,26 +79,68 @@ namespace GNight.EditorTools
             }
         }
 
+        /// <summary>
+        /// Calidad de imagen (se aplica en cada construcción, aunque URP ya existiera): resolución interna 100 %, sin MSAA
+        /// (la cámara usa SMAA), sombras 4096 con 2 cascadas y suaves en calidad alta, sin reescalado.
+        /// </summary>
+        [MenuItem("Tools/GOOD NIGHT/Ajustar calidad URP", false, 21)]
+        public static void Tune()
+        {
+            var asset = GraphicsSettings.defaultRenderPipeline;
+            if (asset == null) return;
+            var so = new SerializedObject(asset);
+            SetFloat(so, "m_RenderScale", 1f);
+            SetInt(so, "m_MSAA", 1);
+            SetInt(so, "m_UpscalingFilter", 0);
+            SetInt(so, "m_MainLightShadowmapResolution", 4096);
+            SetInt(so, "m_AdditionalLightsShadowmapResolution", 4096);
+            SetInt(so, "m_AdditionalLightsShadowResolutionTierHigh", 1024);
+            SetInt(so, "m_AdditionalLightsShadowResolutionTierMedium", 512);
+            SetInt(so, "m_ShadowCascadeCount", 2);
+            SetFloat(so, "m_ShadowDistance", 25f);
+            SetBool(so, "m_SoftShadowsSupported", true);
+            SetInt(so, "m_SoftShadowQuality", 3);
+            SetInt(so, "m_AdditionalLightsPerObjectLimit", 8);
+            SetBool(so, "m_SupportsHDR", false);
+            so.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(asset);
+            QualitySettings.anisotropicFiltering = AnisotropicFiltering.ForceEnable;
+            QualitySettings.globalTextureMipmapLimit = 0;
+            Debug.Log("[GOOD NIGHT] Calidad URP ajustada (render 100 %, SMAA, sombras 4096).");
+        }
+
         static void SetInt(SerializedObject so, string n, int v) { var p = so.FindProperty(n); if (p != null) p.intValue = v; }
         static void SetBool(SerializedObject so, string n, bool v) { var p = so.FindProperty(n); if (p != null) p.boolValue = v; }
         static void SetFloat(SerializedObject so, string n, float v) { var p = so.FindProperty(n); if (p != null) p.floatValue = v; }
     }
 
-    /// <summary>Texturas de GOOD NIGHT con filtro point (PS1) y sin mipmaps.</summary>
+    /// <summary>
+    /// Texturas de GOOD NIGHT (única regla de importación). v3: filtro trilineal + mipmaps + anisotrópico (antes Point sin mipmaps,
+    /// que producía el aspecto pixelado/"Minecraft" y el parpadeo a distancia). Los *_n se importan como mapas normales.
+    /// </summary>
     public class GoodNightTexturePostprocessor : AssetPostprocessor
     {
+        public override uint GetVersion() => 3;
+
         void OnPreprocessTexture()
         {
             if (!assetPath.Replace('\\', '/').Contains("_GoodNight/Art/Textures")) return;
             var ti = (TextureImporter)assetImporter;
-            ti.textureType = TextureImporterType.Default;
-            ti.filterMode = FilterMode.Point;
-            ti.mipmapEnabled = false;
-            ti.wrapMode = TextureWrapMode.Repeat;
-            ti.textureCompression = TextureImporterCompression.Uncompressed;
-            ti.npotScale = TextureImporterNPOTScale.None;
-            ti.alphaIsTransparency = true;
-            ti.maxTextureSize = 1024;
+            string f = System.IO.Path.GetFileNameWithoutExtension(assetPath);
+            bool normal = f.EndsWith("_n");
+            bool hud = f == "grain" || f == "scanlines" || f == "crt_static";
+            bool doc = f == "vignette" || f.StartsWith("note_") || f.StartsWith("receipt") || f.StartsWith("photo") || f.StartsWith("tape_label")
+                       || f.StartsWith("face_") || f == "phone_wallpaper" || f == "blueprint" || f == "kid_drawing" || f == "calendar" || f == "poster"
+                       || f == "clock_face" || f == "screen_desktop" || f == "monitor_off" || f.StartsWith("entity_face");
+            ti.textureType = normal ? TextureImporterType.NormalMap : TextureImporterType.Default;
+            ti.filterMode = FilterMode.Trilinear;
+            ti.mipmapEnabled = !hud && f != "vignette";
+            ti.anisoLevel = hud ? 0 : 8;
+            ti.npotScale = TextureImporterNPOTScale.ToNearest;
+            ti.maxTextureSize = 2048;
+            ti.textureCompression = doc ? TextureImporterCompression.Uncompressed : TextureImporterCompression.CompressedHQ;
+            ti.alphaIsTransparency = !normal;
+            ti.wrapMode = doc ? TextureWrapMode.Clamp : TextureWrapMode.Repeat;
         }
     }
 }

@@ -64,6 +64,18 @@ namespace GNight
             if (Changed != null) Changed();
         }
 
+        /// <summary>Resumen para el panel de depuración.</summary>
+        public string DebugSummary()
+        {
+            var sb = new System.Text.StringBuilder();
+            string[] n = { "ALA", "CAM", "CER", "LUZ", "06" };
+            for (int i = 0; i < state.Length; i++) sb.Append(n[i]).Append(state[i] ? "+ " : "- ");
+            sb.Append("carga ").Append(Load(state)).Append("/").Append(capacity);
+            if (!fuseOK) sb.Append(" · fusible F2 FALTA");
+            if (Tripped) sb.Append(" · DIFERENCIAL SALTADO");
+            return sb.ToString();
+        }
+
         public void SetTrippedSilently() { Tripped = true; for (int i = 0; i < state.Length; i++) state[i] = false; if (Changed != null) Changed(); }
     }
 }

@@ -13,7 +13,7 @@ namespace GNight
         public static SecurityCameraSystem I;
         public SecurityCam[] cams;
         public SecurityCam hallCam;
-        public int width = 320, height = 240;
+        public int width = 768, height = 576;   // antes 320x240: no se distinguían personas ni objetos
 
         [Header("Grabación antigua (cámara del pasillo)")]
         public bool recordingMode = true;

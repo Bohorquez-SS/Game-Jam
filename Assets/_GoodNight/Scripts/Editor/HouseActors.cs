@@ -252,16 +252,18 @@ namespace GNight.EditorTools
                 new Vector3(0.3f,0,-2.0f),   // 9 sala E (paso a cocina)
                 new Vector3(1.6f,0,-2.0f),   // 10 cocina O
                 new Vector3(2.05f,0,-1.55f), // 11 cocina N
-                new Vector3(3.3f,0,-4.0f),   // 12 cocina S
+                new Vector3(3.3f,0,-4.15f),  // 12 cocina S (fregadero)
                 new Vector3(3.55f,0,2.1f),   // 13 habitación 06
                 new Vector3(3.6f,0,0f),      // 14 pasillo frente al armario/06
                 new Vector3(DoorBedX,0,HallZ),   // 15 vano de la puerta del dormitorio (cruza por el centro)
                 new Vector3(DoorBathX,0,HallZ),  // 16 vano de la puerta del baño
                 new Vector3(DoorMetalX,0,HallZ), // 17 vano de la puerta 06
+                new Vector3(3.55f,0,-2.0f),  // 18 cocina E (frente a heladera/alacena, rodea la mesa)
+                new Vector3(1.5f,0,-4.3f),   // 19 cocina SO (entre la mesa y la mesada)
             };
             var nodes = new Transform[p.Length];
             for (int i = 0; i < p.Length; i++) nodes[i] = Group("N" + i, g.transform, p[i]);
-            int[,] e = { { 0, 15 }, { 15, 1 }, { 1, 2 }, { 2, 3 }, { 3, 4 }, { 4, 14 }, { 14, 5 }, { 3, 16 }, { 16, 6 }, { 2, 7 }, { 7, 8 }, { 7, 9 }, { 8, 9 }, { 9, 10 }, { 4, 11 }, { 10, 11 }, { 11, 12 }, { 10, 12 }, { 14, 17 }, { 17, 13 } };
+            int[,] e = { { 0, 15 }, { 15, 1 }, { 1, 2 }, { 2, 3 }, { 3, 4 }, { 4, 14 }, { 14, 5 }, { 3, 16 }, { 16, 6 }, { 2, 7 }, { 7, 8 }, { 7, 9 }, { 8, 9 }, { 9, 10 }, { 4, 11 }, { 10, 11 }, { 11, 18 }, { 18, 12 }, { 10, 19 }, { 19, 12 }, { 14, 17 }, { 17, 13 } };
             int n = e.GetLength(0);
             graph = g.AddComponent<WaypointGraph>();
             graph.nodes = nodes; graph.edgeA = new int[n]; graph.edgeB = new int[n]; graph.edgeDoor = new DoorController[n]; graph.edgeShutter = new Shutter[n];

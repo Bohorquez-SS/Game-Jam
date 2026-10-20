@@ -245,14 +245,14 @@ namespace GNight
         {
             if (ui != null || UIManager.I == null) return;
             ui = UIKit.Rect("Videograbadora_UI", UIManager.I.Panels); UIKit.Stretch(ui);
-            var bg = UIKit.Img("Fondo", ui, new Color(0.01f, 0.012f, 0.016f, 0.93f)); UIKit.Stretch(bg.rectTransform);
+            var bg = UIKit.Img("Fondo", ui, new Color(0.01f, 0.012f, 0.016f, 1f)); UIKit.Stretch(bg.rectTransform);   // opaco: la TV de atrás no se superpone
             title = UIKit.Txt("Titulo", ui, 34, TextAnchor.MiddleCenter, UIKit.Accent);
             UIKit.Place(title.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0, -24), new Vector2(1600, 50));
             title.text = Settings.T("VIDEOGRABADORA · LAS CINTAS DE PAPÁ", "VCR · DAD'S TAPES");
             // pantalla
             var frame = UIKit.Img("Marco", ui, new Color(0.16f, 0.17f, 0.19f, 1f));
-            UIKit.Place(frame.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(-330, -90), new Vector2(720, 470));
-            feed = UIKit.Raw("Imagen", frame.rectTransform); UIKit.Stretch(feed.rectTransform, 10, 10, 10, 10);
+            UIKit.Place(frame.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(-330, -84), new Vector2(640, 480));
+            feed = UIKit.Raw("Imagen", frame.rectTransform); UIKit.Stretch(feed.rectTransform, 10, 10, 10, 10);   // 620×460 ≈ 4:3, igual que la cinta (320×240)
             screenMsg = UIKit.Txt("Mensaje", feed.rectTransform, 30, TextAnchor.MiddleCenter, Color.white); UIKit.Stretch(screenMsg.rectTransform, 24, 24, 24, 24);
             // instrucciones
             var hb = UIKit.Img("AyudaFondo", ui, new Color(0.06f, 0.065f, 0.08f, 0.95f));
@@ -280,7 +280,7 @@ namespace GNight
         {
             bool blink = Mathf.FloorToInt(Time.unscaledTime * 2f) % 2 == 0;
             // pantalla
-            if (playing != null && !tv.showStatic) { feed.texture = tapeRT; feed.color = Color.white; screenMsg.text = ""; }
+            if (playing != null && !tv.showStatic) { feed.texture = tapeRT; feed.color = Color.white; feed.uvRect = new Rect(0, 0, 1, 1); screenMsg.text = ""; }
             else
             {
                 feed.texture = tv.showStatic && tv.staticMat != null ? tv.staticMat.mainTexture : null;

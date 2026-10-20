@@ -21,6 +21,7 @@ namespace GNight
         public WashBasin basin;
         public Transform scare;         // figura que SOLO aparece en el reflejo (capa GN_Mirror)
         public CharacterAnim scareAnim;
+        public Transform scareFace;     // rostro (quad con textura) que aparece pegado al espejo
         RenderTexture rt; Material mat;
         readonly Queue<KeyValuePair<float, Pose>> history = new Queue<KeyValuePair<float, Pose>>();
 
@@ -34,6 +35,7 @@ namespace GNight
             surface.sharedMaterial = mat;
             if (body) GNLayers.SetLayerRecursive(body.gameObject, GNLayers.Mirror);
             if (scare) { GNLayers.SetLayerRecursive(scare.gameObject, GNLayers.Mirror); scare.gameObject.SetActive(false); }
+            if (scareFace) scareFace.gameObject.SetActive(false);
         }
 
         void LateUpdate()

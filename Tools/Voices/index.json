@@ -1,0 +1,524 @@
+[
+[
+"fdf1c9b3",
+"prot",
+"Turno de noche otra vez... Bueno. Cerrar todo y a dormir.",
+3.03
+],
+[
+"6cb9f792",
+"prot",
+"¿El día en que cambiamos la cerradura...? Mamá guarda todos los recibos en la cómoda de la sala.",
+4.37
+],
+[
+"7270d098",
+"prot",
+"No es ese. «El día en que cambiamos la cerradura»...",
+2.79
+],
+[
+"78e90fe8",
+"prot",
+"Mejor no. La alarma ya está activada.",
+2.31
+],
+[
+"e5b8b824",
+"prot",
+"¿Hay alguien...? Es el viento. Tiene que ser el viento.",
+2.56
+],
+[
+"a15f7f52",
+"prot",
+"«Ocupantes: 2»... ¿dos? Estoy solo.",
+2.56
+],
+[
+"e9419139",
+"prot",
+"Seguro está mal calibrada. Papá decía que se equivocaba con los gatos.",
+3.77
+],
+[
+"84ed6a30",
+"prot",
+"¿Quién...? El mensaje se borró solo.",
+1.59
+],
+[
+"7df26a79",
+"prot",
+"¿Qué demonios fue eso?",
+1.17
+],
+[
+"5c684cf3",
+"prot",
+"Mi reflejo... tardó en moverse. Y me seguía mirando.",
+2.93
+],
+[
+"6e1fa679",
+"double",
+"Buenas noches.",
+1.55
+],
+[
+"01bc70f4",
+"prot",
+"La puerta metálica se destrabó. Está en el pasillo, donde estaba el armario.",
+4.0
+],
+[
+"2d714ad6",
+"prot",
+"Huele a la colonia de papá... Hay algo dentro del bolsillo.",
+2.61
+],
+[
+"7b535a4e",
+"prot",
+"Siempre hubo una puerta aquí. Detrás del armario. Toda mi vida.",
+3.65
+],
+[
+"0f80e873",
+"prot",
+"Monitores, papeles... una grabadora de carrete. Papá trabajaba aquí.",
+3.75
+],
+[
+"7bac5ae7",
+"prot",
+"Hay alguien... en mi cama.",
+1.15
+],
+[
+"44cee793",
+"prot",
+"Tiene mi cara. Me está mirando... a través de la cámara.",
+2.58
+],
+[
+"b55367e6",
+"guardian",
+"Protocolo activado. Ocupantes: dos. Autorizados: uno. Aísle al duplicado antes del amanecer.",
+7.53
+],
+[
+"054c8ae1",
+"dad",
+"Si escuchas esto, GUARDIÁN contó dos.",
+2.44
+],
+[
+"4a25ff6b",
+"dad",
+"No es un intruso. Nadie entra en esta casa sin que la alarma lo vea.",
+3.78
+],
+[
+"25be6875",
+"dad",
+"La casa... hace copias. Las hace dentro. Aparecen en una habitación, sin cruzar ninguna puerta.",
+5.92
+],
+[
+"613c3ce4",
+"dad",
+"La primera vez no salió bien. La casa intentó copiar a tu madre... y se quedó a medias. Sin cara. Sin nombre.",
+6.38
+],
+[
+"10ee75a8",
+"dad",
+"GUARDIÁN la registró como SUJETO 0. Imita voces, sobre todo la de ella. Busca a alguien con quien terminar de copiarse.",
+7.01
+],
+[
+"39483228",
+"dad",
+"Las copias siguientes salieron mejor. Demasiado bien. La copia no sabe que lo es. Recuerda la cena. Recuerda a su madre. Te recuerda a ti.",
+8.47
+],
+[
+"e460c79c",
+"dad",
+"Si tú eres mi hijo, aísla al otro. Si no lo eres...",
+3.13
+],
+[
+"3df8027a",
+"dad",
+"...entonces ten el valor de quedarte. Te quiero. A los dos. Lo siento.",
+4.8
+],
+[
+"aed0c2ea",
+"prot",
+"Estoy seguro de que todavía falta una grabación.",
+2.45
+],
+[
+"3bc6729b",
+"prot",
+"Quizás haya algo escondido en mi habitación.",
+2.07
+],
+[
+"64334fc9",
+"prot",
+"¿Y si reviso debajo de la cama?",
+1.59
+],
+[
+"e64b1795",
+"prot",
+"Papá guardaba cosas raras en el baño... ¿detrás del espejo?",
+2.82
+],
+[
+"247b31a6",
+"prot",
+"La cómoda de la sala tiene más cajones que el del recibo.",
+2.56
+],
+[
+"a66f452a",
+"prot",
+"Ese... soy yo. En mi cuarto.",
+1.91
+],
+[
+"b3819cf2",
+"double",
+"¿Hay alguien ahí afuera?",
+1.74
+],
+[
+"eb99c352",
+"double",
+"¿Mamá? ¿Eres tú?",
+1.92
+],
+[
+"33620601",
+"double",
+"Sal. Solo quiero hablar.",
+1.9
+],
+[
+"299aa5bc",
+"double",
+"Sé dónde te escondes.",
+1.78
+],
+[
+"2984e3d3",
+"double",
+"No es tu casa.",
+1.44
+],
+[
+"8fb7a835",
+"prot",
+"Pasos... en el pasillo.",
+1.15
+],
+[
+"532aa942",
+"fakemom",
+"Eso es, mijo... ahora la puerta. Ábreme.",
+2.65
+],
+[
+"b27382a4",
+"fakemom",
+"¿Cariño? Soy yo. Me olvidé las llaves... ábreme, hace frío.",
+4.77
+],
+[
+"f9f647d9",
+"prot",
+"Yo no la llamé. Y si está en el trabajo... ¿quién está en la puerta?",
+3.17
+],
+[
+"caccebd9",
+"fakemom",
+"¿Por qué no me abres? ...Sé que estás despierto.",
+2.88
+],
+[
+"7c846877",
+"fakemom",
+"Abre la puerta... te estoy diciendo que abras.",
+2.84
+],
+[
+"fd0a04d7",
+"fakemom",
+"¡ABRE LA PUERTA!",
+3.06
+],
+[
+"08b4f11d",
+"prot",
+"¿Ma...? No hay nadie.",
+0.98
+],
+[
+"4fc2ab52",
+"fakemom",
+"Gracias por abrirme.",
+1.65
+],
+[
+"450ff4a0",
+"prot",
+"Nadie. Y la puerta estaba cerrada... la cámara mostraba otra cosa.",
+3.7
+],
+[
+"5899db18",
+"prot",
+"Un fusible F2. Ahora, al cuadro eléctrico.",
+3.12
+],
+[
+"cf97c7a8",
+"prot",
+"La alarma se apagó. Mamá dijo que NUNCA la deje sin corriente.",
+3.42
+],
+[
+"73257a69",
+"prot",
+"Saltó el diferencial. Demasiada carga: el cuadro aguanta 7.",
+3.95
+],
+[
+"0afaae97",
+"prot",
+"La puerta del baño está abierta... yo la dejé cerrada.",
+2.52
+],
+[
+"de9935d1",
+"prot",
+"Arriba dice REC. ¿Es una grabación?",
+2.26
+],
+[
+"e08e67e8",
+"prot",
+"Se apagaron las luces... había una linterna en la encimera.",
+2.7
+],
+[
+"c2a5cc2a",
+"prot",
+"Hay... ¿hay alguien en el pasillo?",
+1.42
+],
+[
+"d32d7bcd",
+"guardian",
+"Identidad secundaria seleccionada. Sellando la cocina.",
+3.86
+],
+[
+"c3d324e9",
+"double",
+"¡Espera! ¡TÚ NO ERES EL ORIGINAL!",
+2.67
+],
+[
+"864239ab",
+"dad",
+"Las copias conservan los recuerdos. Incluso recuerdan haber nacido.",
+3.95
+],
+[
+"0b77b866",
+"guardian",
+"Identidad aislada. Salida autorizada.",
+3.12
+],
+[
+"ea3e3174",
+"mom",
+"¡Cariño! ¿Qué haces afuera? Estás helado... y pálido.",
+4.44
+],
+[
+"2bdf912b",
+"mom",
+"Vamos adentro. Te hago el desayuno.",
+2.75
+],
+[
+"7b3e7186",
+"mom",
+"¿Estás bien, cariño?",
+1.49
+],
+[
+"463af059",
+"prot",
+"Sí, mamá.",
+0.77
+],
+[
+"ea1b74f6",
+"prot",
+"Ahora sí.",
+0.73
+],
+[
+"9f2185ac",
+"dad",
+"El problema nunca fue que las copias olvidaran quiénes eran. El problema fue que aprendieron a recordar demasiado bien.",
+6.73
+],
+[
+"0ba30629",
+"double",
+"¡Mamá! ¡No soy yo el que salió!",
+2.23
+],
+[
+"4c62cbfa",
+"guardian",
+"Protocolo completado. Sujeto original contenido. Copia liberada.",
+4.62
+],
+[
+"0c7a269c",
+"guardian",
+"Autoaislamiento solicitado. Habitación 06: cámara de contención. ¿Confirma?",
+6.13
+],
+[
+"0b66096a",
+"prot",
+"No puedo arriesgarme a soltar una copia. Confirmo.",
+2.86
+],
+[
+"660ec46d",
+"guardian",
+"Duplicado aislado. Ocupantes: uno. Gracias.",
+4.07
+],
+[
+"c941f0ad",
+"mom",
+"¡Cariño! ¿Qué haces despierto tan temprano?",
+3.14
+],
+[
+"8d025278",
+"guardian",
+"Análisis completado. Identidad original: no concluyente. Ambos sujetos presentan recuerdos auténticos.",
+7.2
+],
+[
+"07e8b221",
+"dad",
+"Si ambos recuerdan haber vivido la misma vida... ¿cuál de los dos tiene derecho a conservarla?",
+4.09
+],
+[
+"21f925f7",
+"prot",
+"Eso fue en mi cuarto... Papá la llamaba SUJETO 0. La primera copia. La que salió mal.",
+4.51
+],
+[
+"d6bf4d95",
+"guardian",
+"Protocolo no preparado. Restaure ALARMA + CÁMARAS + CERRADURAS en el cuadro de la cocina.",
+5.67
+],
+[
+"69f956ac",
+"guardian",
+"Alarma, cámaras y cerraduras en línea. Protocolo de aislamiento: PREPARADO.",
+5.11
+],
+[
+"da8acdeb",
+"prot",
+"Las cámaras... hay alguien en la cocina.",
+1.82
+],
+[
+"1a5098e9",
+"guardian",
+"Dos identidades coincidentes detectadas. Verificación de origen: fallida.",
+5.72
+],
+[
+"c70b47ec",
+"prot",
+"Es igual a mí... Yo estaba aquí. Yo nunca salí. Entonces, ¿quién entró por la puerta?",
+4.77
+],
+[
+"7ce0aa8b",
+"guardian",
+"Protocolo de aislamiento requerido. Solo una identidad puede abandonar la casa. Advertencia: la decisión es irreversible.",
+7.69
+],
+[
+"a7105f8a",
+"prot",
+"¿Y si yo soy la copia? ¿Cómo sé que mis recuerdos son reales?",
+3.35
+],
+[
+"2b175ce6",
+"double",
+"¡Escúchame! ¡Yo soy el verdadero!",
+2.85
+],
+[
+"6dafd140",
+"double",
+"¡Tú tienes mis recuerdos!",
+1.83
+],
+[
+"40f8d79c",
+"double",
+"¿Mamá? La puerta no abre... yo vivo aquí.",
+2.74
+],
+[
+"92df2bae",
+"double",
+"¡No puedes encerrarme!",
+1.81
+],
+[
+"e18fdad5",
+"double",
+"¡Pregúntale a papá qué hizo!",
+1.83
+],
+[
+"d99a9b44",
+"prot",
+"¡No—!",
+0.5
+],
+[
+"1440f102",
+"prot",
+"Uno de los fusibles está quemado. Necesito encontrar un repuesto.",
+3.65
+]
+]

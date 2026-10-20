@@ -365,9 +365,9 @@ namespace GNight.EditorTools
         void Lights()
         {
             CeilingLight("dormitorio", new Vector3(-2.0f, H - 0.1f, 3.0f), 2.4f);
-            CeilingLight("bano", new Vector3(1.25f, H - 0.1f, 2.3f), 2.2f, 6f);
+            CeilingLight("bano", new Vector3(1.25f, H - 0.1f, 2.3f), 2.2f, 6f, false);
             CeilingLight("pasillo", new Vector3(-2.2f, H - 0.1f, 0f), 1.8f, 6f, false);
-            CeilingLight("pasillo", new Vector3(2.3f, H - 0.1f, 0f), 1.8f, 6f);
+            CeilingLight("pasillo", new Vector3(2.3f, H - 0.1f, 0f), 1.8f, 6f, false);
             CeilingLight("sala", new Vector3(-1.6f, H - 0.1f, -3.0f), 2.8f, 8.5f);
             CeilingLight("cocina", new Vector3(2.8f, H - 0.1f, -3.0f), 2.8f, 8f);
             var sec = CeilingLight("secreta", new Vector3(3.55f, H - 0.1f, 2.3f), 1.5f, 5f, false);

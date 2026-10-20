@@ -63,7 +63,7 @@ namespace GNight
 
         void Update()
         {
-            if (stage == Stage.None || PlayerController.CutsceneLock) return;
+            if (stage == Stage.None || GameRefs.I == null || PlayerController.CutsceneLock) return;
             clockT += Time.deltaTime;
             if (clockT >= 40f) { clockT = 0f; GameClock.Add(1); }
             TickChapter();

@@ -7,6 +7,6 @@ EditorBuildSettings:
   m_Scenes:
   - enabled: 1
     path: Assets/_GoodNight/Scenes/GoodNight_Main.unity
-    guid: 97832a217f13b1443a58e4254a007811
+    guid: 7184b25a00fdad54bb7b9936b3062971
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

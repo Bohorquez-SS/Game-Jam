@@ -12,6 +12,7 @@ namespace GNight
     {
         public static HUDView I;
         public Texture2D vignetteTex, grainTex, scanTex;
+        public Material worldMaterial;   // opaco: ignora el alfa del render del mundo
 
         RawImage world, fp, grain, scan, vignette;
         Image fade, crosshair, toastBg, bannerBg, hintBg, inspectBg, flash;
@@ -24,7 +25,7 @@ namespace GNight
         public void Build(UIManager ui)
         {
             I = this;
-            world = UIKit.Raw("WorldView", ui.World); UIKit.Stretch(world.rectTransform); world.enabled = false;
+            world = UIKit.Raw("WorldView", ui.World); UIKit.Stretch(world.rectTransform); world.enabled = false; if (worldMaterial) world.material = worldMaterial;
             fp = UIKit.Raw("FirstPerson", ui.World); UIKit.Stretch(fp.rectTransform); fp.enabled = false;
 
             vignette = UIKit.Raw("Vignette", ui.FX); UIKit.Stretch(vignette.rectTransform); vignette.texture = vignetteTex; vignette.color = new Color(1, 1, 1, 0.35f);

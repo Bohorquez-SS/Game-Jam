@@ -34,6 +34,8 @@ namespace GNight
             O.Set(T("Asegura la casa antes de dormir", "Lock up the house before bed"),
                   T("La puerta principal está en la sala. Hay ventanas en tu cuarto, la sala y la cocina.", "The front door is in the living room. There are windows in your room, the living room and the kitchen."),
                   T("Apaga la computadora", "Turn off the computer"), T("Cierra la puerta principal", "Close the front door"), WindowsText());
+            Set("c1Objective");
+            C1_Refresh();
         }
 
         int WindowsClosed() { int n = 0; foreach (var w in R.windows) if (!w.isOpen) n++; return n; }
@@ -42,31 +44,24 @@ namespace GNight
         void C1_Event(string id)
         {
             if (Has("houseSecured")) { C1_LateEvent(id); return; }
-            if (id == "pc_off") O.Check(0);
-            else if (id == "pc_on") O.Check(0, false);
-            else if (id == "door_closed:front" && Set("frontClosed"))
+            if (id == "door_closed:front" && Set("frontKey")) { R.bolt.SetKeyLocked(true); A.At(A.lockClunk, R.doorFront.transform.position, 0.8f); }
+            if (id.StartsWith("window_closed:") && WindowsClosed() == R.windows.Length && Set("windowKnock"))
             {
-                O.Check(1);
-                R.bolt.SetKeyLocked(true);
-                A.At(A.lockClunk, R.doorFront.transform.position, 0.8f);
+                int last = 0;
+                for (int i = 0; i < R.windows.Length; i++) if (id == "window_closed:" + R.windows[i].id) last = i;
+                StartCoroutine(C1_WindowKnock(last));
             }
-            else if (id == "door_opened:front") { if (Has("frontClosed")) { flags.Remove("frontClosed"); O.Check(1, false); } }
-            else if (id.StartsWith("window_closed:") || id.StartsWith("window_opened:"))
-            {
-                O.SetItem(2, WindowsText());
-                O.Check(2, WindowsClosed() == R.windows.Length);
-                if (id.StartsWith("window_closed:") && WindowsClosed() == R.windows.Length && Set("windowKnock"))
-                {
-                    int last = 0;
-                    for (int i = 0; i < R.windows.Length; i++) if (id == "window_closed:" + R.windows[i].id) last = i;
-                    StartCoroutine(C1_WindowKnock(last));
-                }
-            }
-            if (O.AllDone && !Has("houseSecured") && Has("frontClosed") && WindowsClosed() == R.windows.Length && !R.computer.on)
-            {
-                Set("houseSecured");
-                StartCoroutine(C1_AlarmObjective());
-            }
+            if (id == "pc_off" || id == "pc_on" || id.StartsWith("door_") || id.StartsWith("window_")) C1_Refresh();
+        }
+
+        /// <summary>El objetivo refleja SIEMPRE el estado real de la casa (no depende del orden de los eventos).</summary>
+        void C1_Refresh()
+        {
+            if (!Has("c1Objective") || Has("houseSecured")) return;
+            bool pc = !R.computer.on, door = !R.doorFront.isOpen, wins = WindowsClosed() == R.windows.Length;
+            O.Check(0, pc); O.Check(1, door);
+            O.SetItem(2, WindowsText()); O.Check(2, wins);
+            if (pc && door && wins) { Set("houseSecured"); StartCoroutine(C1_AlarmObjective()); }
         }
 
         void C1_LateEvent(string id)

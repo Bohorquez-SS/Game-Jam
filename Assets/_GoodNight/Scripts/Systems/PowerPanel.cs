@@ -12,6 +12,8 @@ namespace GNight
         public readonly int[] cost = { 3, 2, 2, 3, 2 };
         public bool[] state = { true, false, false, true, false };
         public bool c06Known;
+        /// <summary>Fusible F2 de las cámaras (en el cap. 2 está fundido).</summary>
+        public bool fuseOK = true;
         public bool Tripped { get; private set; }
         public event System.Action Changed;
 
@@ -29,7 +31,7 @@ namespace GNight
 
         void Awake() { I = this; }
 
-        public bool On(Circuit c) => !Tripped && state[(int)c];
+        public bool On(Circuit c) => !Tripped && state[(int)c] && (c != Circuit.Cameras || fuseOK);
         public bool SecurityComplete => On(Circuit.Alarm) && On(Circuit.Cameras) && On(Circuit.Locks);
 
         public int Load(bool[] s) { int l = 0; for (int i = 0; i < s.Length; i++) if (s[i]) l += cost[i]; return l; }
@@ -44,6 +46,8 @@ namespace GNight
             GameEvents.Raise("power_changed");
             return true;
         }
+
+        public void InstallFuse() { fuseOK = true; if (Changed != null) Changed(); GameEvents.Raise("power_changed"); }
 
         public void Trip()
         {

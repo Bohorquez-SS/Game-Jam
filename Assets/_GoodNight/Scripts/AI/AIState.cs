@@ -1,7 +1,4 @@
-using System.Collections.Generic;
-using UnityEngine;
-
 namespace GNight
 {
-    public enum AIState { Inactive, Patrol, Investigate, Chase, Search, Return }
+    public enum AIState { Inactive, Patrol, Investigate, Notice, Chase, Search, InspectHide, Return, Scripted }
 }

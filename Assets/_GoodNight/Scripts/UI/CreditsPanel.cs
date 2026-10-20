@@ -22,6 +22,8 @@ namespace GNight
                 Settings.T("PROGRAMACIÓN · NIVELES · NARRATIVA", "PROGRAMMING · LEVELS · NARRATIVE") + "\nKevin Mollo " + Settings.T("y equipo", "& team") + "\n\n" +
                 Settings.T("ASISTENCIA DE DESARROLLO", "DEVELOPMENT ASSISTANCE") + "\nClaude (Anthropic)\n\n" +
                 Settings.T("MOTOR", "ENGINE") + "\nUnity 6.3 LTS\n\n" +
+                Settings.T("MODELOS Y ANIMACIONES", "MODELS & ANIMATION") + "\n" + Settings.T("Modelados por código en Blender para este proyecto", "Modelled in code with Blender for this project") + "\n\n" +
+                Settings.T("RECURSOS ADICIONALES", "ADDITIONAL ASSETS") + "\nKayKit — Kay Lousberg (CC0) · www.kaylousberg.com\n\n" +
                 Settings.T("Texturas y sonidos generados proceduralmente para este proyecto.", "Textures and sounds generated procedurally for this project.") + "\n\n\n\n" +
                 Settings.T("Gracias por jugar.", "Thanks for playing.") + "\n\n\n" +
                 "<color=#8a1a14>" + Settings.T("Buenas noches.", "Good night.") + "</color>";

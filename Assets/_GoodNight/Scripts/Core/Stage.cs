@@ -1,8 +1,16 @@
-using UnityEngine;
-using UnityEngine.SceneManagement;
-
 namespace GNight
 {
-    /// <summary>Puntos de control de la historia (inicio de cada tramo peligroso).</summary>
-    public enum Stage { None = -1, Act1 = 0, Act2Wake = 1, Act2Cameras = 2, Act2Survival = 3, Act3Search = 4, Act3Final = 5 }
+    /// <summary>Puntos de control (inicio de cada tramo). El orden importa: ApplyWorld es acumulativo.</summary>
+    public enum Stage
+    {
+        None = -1,
+        C1_Noche = 0,        // 23:47 una noche normal
+        C2_Despertar = 1,    // 00:18 cerrojo y voz falsa
+        C2_Camaras = 2,      // cámaras, fusible, energía
+        C2_Persecucion = 3,  // primer encuentro
+        C3_Cintas = 4,       // mensajes imposibles, cintas VHS
+        C3_Persecucion = 5,  // segunda persecución
+        C4_Protocolo = 6,    // llave, armario, habitación 06, grabación
+        C5_Final = 7         // aislamiento final y epílogo
+    }
 }

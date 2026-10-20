@@ -23,7 +23,7 @@ namespace GNight
         void Update()
         {
             if (!HasFlashlight || beam == null) return;
-            if (!PlayerController.MoveBlocked && Inp.Flashlight())
+            if (!PlayerController.CutsceneLock && !UIManager.ModalOpen && Inp.Flashlight())
             {
                 beam.enabled = !beam.enabled;
                 if (AudioManager.I) AudioManager.I.UI(click, 0.6f);

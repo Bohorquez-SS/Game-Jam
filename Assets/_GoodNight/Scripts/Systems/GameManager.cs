@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace GNight
 {
-    /// <summary>Arranque (menú o punto de control), muerte, pausa y salida.</summary>
+    /// <summary>Arranque (menú o punto de control), muerte con jumpscare 3D, pausa y salida.</summary>
     public class GameManager : MonoBehaviour
     {
         public static GameManager I;
@@ -18,6 +18,8 @@ namespace GNight
             AudioListener.pause = false;
             PlayerController.CutsceneLock = true;
             PlayerController.CutsceneLockLook = false;
+            Inventory.Clear();
+            IsolationStation.Motion.Clear();
         }
 
         IEnumerator Start()
@@ -39,18 +41,19 @@ namespace GNight
             GameClock.Set(23, 40);
             if (LightingManager.I) LightingManager.I.SetMood(Mood.Night);
             UIManager.I.Open(UIManager.I.Get<MenuPanel>());
-            if (AudioManager.I) AudioManager.I.SetMusic(0.35f);
+            if (AudioManager.I) AudioManager.I.SetMusic(0.3f);
         }
 
         public void StartGame(Stage s)
         {
-            if (s == Stage.None) s = Stage.Act1;
+            if (s == Stage.None) s = Stage.C1_Noche;
             Playing = true; dead = false;
             Checkpoint.Save(s);
-            if (AudioManager.I) AudioManager.I.SetMusic(0.12f);
+            if (AudioManager.I) AudioManager.I.SetMusic(0f);
             StoryManager.I.Begin(s);
         }
 
+        /// <summary>Muerte: la entidad aparece frente a la cámara, se abalanza, grito, sacudida, negro y pantalla de muerte.</summary>
         public void Die(string quote)
         {
             if (dead) return;
@@ -61,21 +64,34 @@ namespace GNight
         IEnumerator DieCo(string quote)
         {
             PlayerController.CutsceneLock = true;
+            if (Phone3D.I) Phone3D.I.Close();
+            if (FocusSystem.Active) FocusSystem.I.Exit();
+            if (InspectSystem.Active) InspectSystem.I.End();
             UIManager.I.CloseAll();
             var r = GameRefs.I;
             HidingSpot.ForceExit();
             yield return null;
-            if (r && r.enemy)
+            var e = r != null ? r.enemy : null;
+            if (e != null)
             {
                 var cam = r.player.cam;
                 Vector3 f = cam.forward; f.y = 0; if (f.sqrMagnitude < 0.01f) f = r.player.transform.forward; f.Normalize();
-                Vector3 p = cam.position + f * 0.75f; p.y = r.player.transform.position.y;
-                r.enemy.ShowAt(p, Quaternion.LookRotation(-f).eulerAngles.y);
+                Vector3 p = cam.position + f * 0.9f; p.y = r.player.transform.position.y;
+                e.ShowAt(p, Quaternion.LookRotation(-f).eulerAngles.y, "Attack", false);
+                e.LookAtPlayer(1f);
             }
-            if (AudioManager.I) AudioManager.I.UI(AudioManager.I.sting, 1f);
-            yield return new WaitForSeconds(0.85f);
+            if (AudioManager.I) { AudioManager.I.UI(AudioManager.I.entityScream != null ? AudioManager.I.entityScream : AudioManager.I.sting, 1f); AudioManager.I.UI(AudioManager.I.hitLow, 0.9f); }
+            CameraFX.Shake(0.9f); CameraFX.FovKick(-12f);
+            if (PostFX.I) PostFX.I.Shock(1f);
+            for (float t = 0; t < 0.7f; t += Time.deltaTime)
+            {
+                if (e != null) r.player.LookAtPoint(e.head != null ? e.head.position : e.transform.position + Vector3.up * 1.7f, Time.deltaTime * 12f);
+                yield return null;
+            }
             HUDView.I.SetFade(1f);
-            if (r && r.enemy) r.enemy.Despawn();
+            if (e != null) e.Despawn();
+            if (AudioManager.I) AudioManager.I.SetTension(0f);
+            yield return new WaitForSeconds(0.6f);
             UIManager.I.Get<DeathPanel>().Show(quote);
         }
 

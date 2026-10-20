@@ -12,43 +12,55 @@ namespace GNight
         public FlashlightController flashlight;
 
         [Header("Poses")]
-        public Transform poseMenu, poseDesk, poseBed, poseBedSide, poseSalaMonitor, poseSalaDoor, poseSecret, poseExitStart, poseExitEnd;
+        public Transform poseMenu, poseDeskSeated, poseDeskStand, poseBedLie, poseBedSit, poseBedSide, poseSalaDoor, poseSalaMonitor,
+                         poseSecret, poseExitStart, poseExitEnd, poseKitchen, poseHall;
 
-        [Header("Puertas y ventanas")]
+        [Header("Puertas, ventanas, muebles")]
         public DoorController doorBedroom, doorBathroom, doorKitchen, doorFront, doorMetal;
         public DeadBolt bolt;
         public WindowController[] windows;
         public Computer computer;
         public RoomLight bedroomLamp;
         public SlidingWardrobe wardrobe;
-        public Shutter[] shuttersKitchen, shuttersBedroom;
+        public Shutter[] shuttersKitchen, shuttersBedroom, shuttersSecret;
         public RoomZone[] zones;
+        public HidingSpot wardrobeHide, pantryHide, lockerHide;
+        public Drawer kitchenDrawerSlam;
 
         [Header("Entidad")]
         public EnemyAI enemy;
         public WaypointGraph graph;
-        public int nodeBathroom, nodeBedroom;
-        public int[] routeAct2, routeFinal;
-        public Transform spawnBathroom, spawnBed;
-        public Transform doppelInBed, doppelTorso, doppelHead;
-        public Transform ghostFar, ghostNear;
+        public int nodeBathroom, nodeBedroom, nodeHallEnd;
+        public int[] routeChase1, routeChase2, routeFinal;
+        public Transform spawnBathroom, spawnHallEnd, spawnBedroom, spawnBedroomCam, spawnKitchen, hallFigure, windowPeek;
+        public Transform camGhost, ghostFar, ghostNear;
+        public CharacterAnim doppelBed;        // el doble acostado (revelación)
+        public Transform doppelBedRoot;
 
-        [Header("Fuentes de sonido en el mundo")]
+        [Header("Sonidos en el mundo")]
         public AudioSource[] windowOutside;
-        public AudioSource frontDoorOutside, hallSteps, bathroomInside, kitchenVoice, secretWall;
-        public Transform shadowFigure, shadowStart, shadowEnd;
+        public AudioSource frontDoorOutside, kitchenVoice, secretWall, bathroomInside, platesSource;
         public Transform[] hallStepPath;
 
-        [Header("Estaciones")]
-        public PanelStation monitorStation, alarmStation, powerStation, isolationStation;
-        public StoryInteractable recorder, auxLever;
+        [Header("Estaciones y objetos")]
+        public CameraDeskStation cameraDesk;
+        public AlarmKeypadStation alarmKeypad;
+        public BreakerStation breaker;
+        public VCRStation vcr;
+        public IsolationStation isolation;
+        public MirrorReflection mirror;
         public FlashlightPickup flashlightPickup;
+        public Inspectable receipt, fuse, tapeA, tapeB, tapeC, key, photoFamily, photoHall, reel, plan, fatherNotes, isolationDoc, fuseNote;
+        public SearchSpot coatPocket, underBed;
+        public ItemTarget wardrobeKeyhole, recorderSlot;
+        public StoryInteractable recorder, auxLever;
         public MonitorScreen[] secretMonitors;
-        public TextMesh metalDoorSign;
+        public Texture2D photoFamilyMissing;
+        public Renderer photoFamilyPicture;
 
-        [Header("Documentos (para restaurar puntos de control)")]
-        public DocumentData docReceipt, docPlan, docFatherNote, docIsolation;
-        public Drawer receiptDrawer, planDrawer;
+        [Header("Final")]
+        public Transform momCar, carStart, carStop;
+        public Light[] carLights;
 
         void Awake()
         {

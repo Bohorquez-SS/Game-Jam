@@ -14,7 +14,7 @@ namespace GNight.EditorTools
     }
 
     /// <summary>Herramientas de construcción procedural: mallas con UV en metros, materiales, luces, audio y paredes con huecos.</summary>
-    public static class BuildKit
+    public static partial class BuildKit
     {
         public const string Root = "Assets/_GoodNight";
         public const string MatDir = Root + "/Materials";

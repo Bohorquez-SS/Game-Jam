@@ -248,6 +248,7 @@ namespace GNight
         {
             if (stage == Stage.C1_Noche) C1_Tick();
             else if (stage == Stage.C3_Cintas) C3_Tick();
+            else if (stage == Stage.C4_Protocolo) C4_Tick();
         }
     }
 }

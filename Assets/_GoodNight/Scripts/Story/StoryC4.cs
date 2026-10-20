@@ -23,7 +23,12 @@ namespace GNight
             R.doorMetal.locked = true;
             R.doorMetal.lockedEs = "Puerta metálica. No tiene manija... solo un panel apagado: «CIRCUITO 06».";
             R.doorMetal.lockedEn = "A metal door. No handle... just a dead panel: \"CIRCUIT 06\".";
-            if (R.coatPocket) R.coatPocket.available = true;
+            if (R.coatPocket)
+            {
+                R.coatPocket.available = true;
+                if (R.coatPocket.hidden == null) R.coatPocket.hidden = R.key;   // red de seguridad: la llave SIEMPRE está en el bolsillo
+            }
+            if (R.key) { R.key.gameObject.SetActive(true); R.key.collect = true; }
             O.Set(T("El cuarto que no existe", "The room that doesn't exist"),
                   T("El abrigo de papá cuelga junto a la entrada. El armario del pasillo tiene una cerradura pequeña.", "Dad's coat hangs by the entrance. The hallway wardrobe has a small lock."),
                   T("Busca la llave en el abrigo de papá", "Find the key in dad's coat"),
@@ -77,10 +82,14 @@ namespace GNight
 
         void C4_Event(string id)
         {
-            if (id == "collected:key" && Set("gotKey"))
+            if (id == "search:key" && Set("coatSmell"))
+                H.Say(You, T("Huele a la colonia de papá... Hay algo dentro del bolsillo.", "It smells like dad's cologne... There's something in the pocket."), 3.5f);
+            else if (id == "collected:key" && Set("gotKey"))
             {
                 O.Check(0);
-                H.Say(You, T("Una llave pequeña... con un 06 grabado.", "A tiny key... with 06 engraved on it."), 3.5f);
+                O.SetItem(1, T("Usa la llave para abrir el armario del pasillo", "Use the key to open the hallway wardrobe"));
+                H.Hint(T("Llave del armario obtenida", "Wardrobe key obtained"), 3.5f);
+                StartCoroutine(SayLater(1f, You, T("Una llave pequeña... con un 06 grabado. Es de un mueble.", "A tiny key... with 06 engraved on it. It's for furniture."), 3.5f));
             }
             else if (id == "wardrobe_unlocked" && Set("wardrobeUnlocked"))
             {
@@ -111,7 +120,10 @@ namespace GNight
             else if (id == "zone:secreta" && Has("metalOpen") && Set("in06"))
                 StartCoroutine(C4_Enter06());
             else if (id == "collected:reel" && Set("gotReel"))
+            {
                 O.Check(1);
+                H.Hint(T("Cinta de carrete obtenida. Colócala en la grabadora ([E] sobre la grabadora).", "Reel tape obtained. Load it into the recorder ([E] on the recorder)."), 4f);
+            }
             else if (id == "reel_loaded" && Set("reelLoaded"))
                 StartCoroutine(C4_DadTape());
             else if (id == "aux_lever" && Has("dadTapeDone") && Set("auxOn"))
@@ -122,13 +134,22 @@ namespace GNight
                 JournalManager.I.AddClue("iso", T("Manual GUARDIÁN: un sensor que parpadea a ritmo fijo es un ECO. Una cámara con REC y hora vieja está CONGELADA. Aísla solo lo que confirmen un sensor estable y una cámara en DIRECTO.", "GUARDIAN manual: a sensor blinking at a steady rhythm is an ECHO. A camera showing REC and an old time is FROZEN. Only isolate what a steady sensor AND a LIVE camera confirm."));
         }
 
+        /// <summary>Red de seguridad: entrar a la 06 se detecta también por posición (no solo por el evento de zona).</summary>
+        void C4_Tick()
+        {
+            if (!Has("metalOpen") || Has("in06")) return;
+            var p = R.player.transform.position;
+            if (p.x > HouseZone06.X0 + 0.1f && p.x < HouseZone06.X1 && p.z > HouseZone06.Z0 + 0.35f && p.z < HouseZone06.Z1 && Set("in06"))
+                StartCoroutine(C4_Enter06());
+        }
+
         IEnumerator C4_Enter06()
         {
             A.SetAmbience(0.3f);
             yield return Wait(0.8f);
             H.Say(You, T("Monitores, papeles... una grabadora de carrete. Papá trabajaba aquí.", "Monitors, papers... a reel-to-reel recorder. Dad worked here."), 4f);
             O.Set(T("Habitación 06", "Room 06"),
-                  T("Lee los papeles del escritorio. La cinta del carrete tiene que estar cerca.", "Read the papers on the desk. The reel must be close by."),
+                  T("A la izquierda, bajo la lámpara, está la mesa de GRABACIONES: la grabadora de papá y una cinta de carrete. Los papeles del escritorio del fondo explican el resto.", "On the left, under the lamp, is the RECORDINGS table: dad's recorder and a reel tape. The papers on the back desk explain the rest."),
                   T("Entra en la habitación 06", "Enter room 06"),
                   T("Encuentra la cinta de carrete", "Find the reel tape"),
                   T("Escucha la grabación de papá", "Listen to dad's recording"));

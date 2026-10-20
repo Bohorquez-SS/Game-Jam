@@ -99,8 +99,10 @@ namespace GNight
             // se abalanza: sonido sincronizado (capas a volumen moderado, sin saturar), sacudida, destello rojo
             if (am)
             {
-                am.UI(am.scareHit2 != null ? am.scareHit2 : (am.scareHit != null ? am.scareHit : am.sting), 0.85f);
-                am.UI(am.entityScream != null ? am.entityScream : am.sting, 0.7f);
+                // la puerta principal (lungeFrom) conserva su sonido; la captura normal tiene uno propio
+                var hitClip = lungeFrom.HasValue ? am.scareHit2 : (am.scareCatch != null ? am.scareCatch : am.scareHit2);
+                am.UI(hitClip != null ? hitClip : am.sting, 0.85f);
+                am.UI(am.entityScream != null ? am.entityScream : am.sting, lungeFrom.HasValue ? 0.7f : 0.45f);
                 am.UI(am.hitLow, 0.6f);
             }
             CameraFX.Shake(0.9f); CameraFX.FovKick(-14f);

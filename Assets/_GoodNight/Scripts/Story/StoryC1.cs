@@ -227,18 +227,32 @@ namespace GNight
                 sc.gameObject.SetActive(true);
                 if (R.mirror.scareAnim) { R.mirror.scareAnim.Play("Stare", 0f); R.mirror.scareAnim.lookTarget = R.player.EyePosition; R.mirror.scareAnim.lookWeight = 1f; }
             }
-            // levantar la vista despacio hacia el espejo
+            // la luz del baño se enciende para que el espejo se vea normal al levantar la vista
+            LightingManager.I.SetZone("bano", true);
+            // levantar la vista despacio hacia el espejo: un instante, todo normal...
             yield return R.player.MoveCamera(pose.position, yaw, 4f, eye, 0f, 1.3f);
-            yield return Wait(0.45f);
-            // golpe: sonido sincronizado + sacudida + se abalanza
-            A.UI(A.scareHit != null ? A.scareHit : A.sting, 0.85f);
-            A.At(A.entityScream, tapPos, 0.55f);
-            CameraFX.Shake(0.45f);
-            H.Flash(new Color(0.6f, 0.05f, 0.03f, 0.35f), 0.18f);
-            LightingManager.I.Flicker("bano", 1.2f);
+            yield return Wait(0.7f);
+            // GOLPE: el rostro aparece pegado al espejo, se abalanza hacia ti
+            var face = R.mirror.scareFace;
+            A.UI(A.scareMirror != null ? A.scareMirror : (A.scareHit != null ? A.scareHit : A.sting), 0.9f);
+            CameraFX.Shake(0.5f); CameraFX.FovKick(-10f);
+            if (PostFX.I) PostFX.I.Shock(0.6f);
             if (R.mirror.scareAnim) R.mirror.scareAnim.Play("Attack", 0.05f, 1.3f, true);
-            for (float t = 0; t < 0.55f && sc; t += Time.deltaTime) { sc.position = Vector3.Lerp(from, to, Ease.InOut(t / 0.55f)); yield return null; }
-            yield return Wait(0.5f);
+            Vector3 fBase = face ? face.localPosition : Vector3.zero, fScale = face ? face.localScale : Vector3.one;
+            if (face) face.gameObject.SetActive(true);
+            for (float t = 0; t < 0.9f; t += Time.deltaTime)
+            {
+                float k = Ease.Out(Mathf.Clamp01(t / 0.35f));
+                if (face)
+                {
+                    face.localScale = fScale * Mathf.Lerp(0.8f, 1.45f, k);
+                    face.position = face.parent.TransformPoint(fBase) + pose.forward * (-0.25f * k) + Random.insideUnitSphere * 0.012f;
+                }
+                if (sc) sc.position = Vector3.Lerp(from, to, k);
+                yield return null;
+            }
+            if (face) { face.gameObject.SetActive(false); face.localScale = fScale; face.localPosition = fBase; }
+            LightingManager.I.Flicker("bano", 1.2f);
             if (sc) sc.gameObject.SetActive(false);
             // girarse de golpe: no hay nadie
             yield return R.player.MoveCamera(pose.position, yaw + 180f, 0f, eye, 0f, 0.4f);

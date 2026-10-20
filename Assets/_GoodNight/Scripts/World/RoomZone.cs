@@ -13,7 +13,9 @@ namespace GNight
         public bool Contains(Vector3 p)
         {
             Vector3 d = p - transform.position;
-            return Mathf.Abs(d.x) <= size.x * 0.5f && Mathf.Abs(d.z) <= size.z * 0.5f && d.y > -1f && d.y < 3.5f;
+            // (18/10) la zona está centrada a 1,5 m de altura y el jugador/la IA tienen el pivote en los PIES (y≈0):
+            // con "d.y > -1" nunca coincidía nadie → no se disparaban los eventos de zona (p. ej. entrar a la 06).
+            return Mathf.Abs(d.x) <= size.x * 0.5f && Mathf.Abs(d.z) <= size.z * 0.5f && d.y > -1.9f && d.y < 2.2f;
         }
 
         public static RoomZone[] All;

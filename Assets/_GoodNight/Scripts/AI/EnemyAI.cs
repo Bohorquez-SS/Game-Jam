@@ -38,6 +38,7 @@ namespace GNight
         List<int> path; int pathIdx, node = -1, routeIdx;
         Vector3 goal, lastSeen; bool hasGoal;
         float wait, stateT, stepT, stuckT, noticeT;
+        float detourT, unstickT; int unstickSide = 1, stuckCount;   // anti-atascos (18/10)
         Vector3 lastPos;
         int returnNode = -1;
         DoorController pendingDoor;
@@ -225,11 +226,13 @@ namespace GNight
         void Chase(PlayerController p, float dist)
         {
             if (!SeesPlayer && TimeSinceSeen > 4f) { SetState(AIState.Search); return; }
-            if (SeesPlayer && dist < 7f)
+            detourT -= Time.deltaTime;
+            if (SeesPlayer && dist < 7f && detourT <= 0f)
             {
                 path = null; hasGoal = false;
                 MoveToward(p.transform.position, chaseSpeed);
-                if (stuckT > 1.2f) { stuckT = 0f; GoTo(p.transform.position); }
+                // en línea recta contra una silla/mesa: rodear por el grafo un rato en vez de empujar para siempre
+                if (stuckT > 0.8f) { stuckT = 0f; detourT = 2.5f; GoTo(p.transform.position); }
             }
             else
             {
@@ -264,7 +267,8 @@ namespace GNight
             LookAtPlayer(0.6f);
             if (wait <= 0f) { wait = Random.Range(4.5f, 6.5f); if (AudioManager.I) AudioManager.I.At(Pick(AudioManager.I.breathClose, AudioManager.I.breath), transform.position + Vector3.up * 1.6f, 1f, 6f); GameEvents.Raise("ai_inspecting_hide"); }
             wait -= Time.deltaTime;
-            if (HidingSpot.Current == null && Vector3.Distance(transform.position, p.transform.position) < 2.6f) { Caught(); return; }
+            if (HidingSpot.Current == null && Vector3.Distance(transform.position, p.transform.position) < 2.2f
+                && RoomZone.At(transform.position) == RoomZone.At(p.transform.position)) { Caught(); return; }
             if (wait <= 0.05f)
             {
                 LookAtPlayer(0f);
@@ -275,7 +279,19 @@ namespace GNight
         }
 
         /// <summary>¿Está la entidad justo delante de este escondite?</summary>
-        public bool Guarding(HidingSpot s) => State != AIState.Inactive && gameObject.activeInHierarchy && s != null && Vector3.Distance(transform.position, s.outside.position) < 2.2f;
+        /// (18/10) Solo cuenta si está de verdad ahí: misma habitación, cerca de la salida y buscando/persiguiendo.
+        /// Antes bastaba con estar a 2,2 m aunque fuera del otro lado de la pared o de paso → muertes injustas al salir.
+        public bool Guarding(HidingSpot s)
+        {
+            if (s == null || !gameObject.activeInHierarchy) return false;
+            if (State == AIState.Inactive || State == AIState.Scripted || State == AIState.Return) return false;
+            float d = Flat(transform.position - s.outside.position).magnitude;
+            if (d > 1.9f) return false;
+            if (RoomZone.At(transform.position) != RoomZone.At(s.outside.position)) return false;
+            if (State == AIState.InspectHide) return inspecting == s;
+            if (State == AIState.Chase || State == AIState.Search || State == AIState.Investigate || State == AIState.Notice) return true;
+            return d < 1.1f;   // patrullando: solo si está literalmente delante de la puerta
+        }
 
         // ------------------------------------------------------------ navegación
         void NextPatrolTarget()
@@ -318,7 +334,14 @@ namespace GNight
                     if (e >= 0 && graph.Blocked(e)) { path = null; return false; }
                 }
                 Vector3 t = graph.Pos(next);
-                if (Flat(t - transform.position).magnitude < 0.35f) { node = next; pathIdx++; return true; }
+                if (Flat(t - transform.position).magnitude < 0.35f) { node = next; pathIdx++; stuckCount = 0; return true; }
+                if (stuckT > 1.0f)
+                {
+                    // atascado camino a un punto: primero se desliza de costado; si sigue, salta al punto siguiente / recalcula
+                    stuckT = 0f; stuckCount++;
+                    unstickT = 0.7f; unstickSide = -unstickSide;
+                    if (stuckCount >= 3) { stuckCount = 0; if (Flat(t - transform.position).magnitude < 1.2f) { node = next; pathIdx++; } else { node = graph.Nearest(transform.position); path = graph.Path(node, path[path.Count - 1]) ?? new List<int>(); pathIdx = 0; } }
+                }
                 MoveToward(t, speed);
                 return true;
             }
@@ -344,6 +367,13 @@ namespace GNight
             if (d.sqrMagnitude < 0.0001f) return;
             FaceTowards(t, 240f);
             Vector3 before = transform.position;
+            if (unstickT > 0f)
+            {
+                unstickT -= Time.deltaTime;
+                cc.SimpleMove(Quaternion.Euler(0, 75f * unstickSide, 0) * d.normalized * speed * 0.8f);
+                stuckT = 0f;
+                return;
+            }
             cc.SimpleMove(transform.forward * speed * Mathf.Clamp01(1.2f - Vector3.Angle(transform.forward, d) / 120f));
             float progress = (transform.position - before).magnitude;
             stuckT = progress < speed * Time.deltaTime * 0.2f ? stuckT + Time.deltaTime : 0f;

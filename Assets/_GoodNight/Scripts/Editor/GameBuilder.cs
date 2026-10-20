@@ -298,7 +298,7 @@ namespace GNight.EditorTools
             am.crack = Clip("crack"); am.entityScream = Clip("entity_scream"); am.hitLow = Clip("hit_low"); am.tensionRise = Clip("tension_rise"); am.handleRattle = Clip("handle_rattle");
             am.woodCreak = Clip("wood_creak"); am.plates = Clip("plates"); am.birds = Clip("birds"); am.carArrive = Clip("car_arrive"); am.carDoor = Clip("car_door");
             am.vhsInsert = Clip("vhs_insert"); am.tapeHiss = Clip("tape_hiss"); am.tvStatic = Clip("tv_static"); am.doorCreak = Clip("door_creak"); am.doorClose = Clip("door_close"); am.thunder = Clip("thunder");
-            am.water = Clip("water_run"); am.scareHit = Clip("scare_hit"); am.scareHit2 = Clip("scare_hit_2"); am.doorSlow = Clip("door_slow_open");
+            am.water = Clip("water_run"); am.scareHit = Clip("scare_hit"); am.scareHit2 = Clip("scare_hit_2"); am.doorSlow = Clip("door_slow_open"); am.scareMirror = Clip("scare_mirror"); am.scareCatch = Clip("scare_catch"); am.creakNear = Clip("creak_near"); am.knockWall = Clip("knock_wall"); am.whisperFar = Clip("whisper_far");
             am.voiceMom = Clip("voice_mom"); am.voiceDad = Clip("voice_dad"); am.voiceGuardian = Clip("voice_guardian"); am.voiceYou = Clip("voice_you"); am.voiceEntity = Clip("voice_entity");
             var amb = Group("Ambiente_2D", sys);
             var rain2d = Src("Lluvia_General", amb, Vector3.zero, Clip("rain_loop"), 0.22f, true, 0f);

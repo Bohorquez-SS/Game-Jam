@@ -18,7 +18,7 @@ namespace GNight
                          staticBurst, steps1, steps2, steps3, heavyStep1, heavyStep2, crack, entityScream, hitLow, tensionRise, handleRattle, woodCreak,
                          plates, birds, carArrive, carDoor, vhsInsert, tapeHiss, tvStatic, doorCreak, doorClose, thunder;
         [Header("Sustos y escenas (18/10)")]
-        public AudioClip water, scareHit, scareHit2, doorSlow, momOutside;
+        public AudioClip water, scareHit, scareHit2, doorSlow, momOutside, scareMirror, scareCatch, creakNear, knockWall, whisperFar;
         [Header("Voces provisionales (reemplazables por grabaciones reales)")]
         public AudioClip voiceMom, voiceDad, voiceGuardian, voiceYou, voiceEntity;
         [Header("Fuentes")]
@@ -41,6 +41,19 @@ namespace GNight
             }
             if (music) musicTarget = music.volume;
             if (tension) { tension.volume = 0f; tensionTarget = 0f; }
+            // (18/10) lluvia ~18 % más baja: sigue presente pero deja oír diálogos, pasos y golpes
+            if (ambience != null && ambience.Length > 0 && ambience[0] != null && ambienceBase != null) ambienceBase[0] *= RainScale;
+            if (GetComponent<AmbientDread>() == null) gameObject.AddComponent<AmbientDread>();
+        }
+
+        public const float RainScale = 0.82f;
+        float proxTension;
+
+        void Start()
+        {
+            // lluvia de las ventanas (fuentes 3D con el clip rain_loop)
+            foreach (var a in FindObjectsByType<AudioSource>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                if (a.clip != null && a.clip.name == "rain_loop" && (ambience == null || System.Array.IndexOf(ambience, a) < 0)) a.volume *= RainScale;
         }
 
         void Update()
@@ -50,7 +63,13 @@ namespace GNight
                 for (int i = 0; i < ambience.Length; i++)
                     if (ambience[i]) ambience[i].volume = Mathf.MoveTowards(ambience[i].volume, ambienceBase[i] * ambienceScale * Settings.Sfx, dt * 0.25f);
             if (music) music.volume = Mathf.MoveTowards(music.volume, musicTarget * Settings.Sfx, dt * 0.12f);
-            if (tension) tension.volume = Mathf.MoveTowards(tension.volume, tensionTarget * Settings.Sfx, dt * 0.35f);
+            // presencia de la entidad: el latido sube poco a poco cuanto más cerca está (sin pisar la tensión de la historia)
+            var e = EnemyAI.I; var pc = PlayerController.I;
+            float prox = 0f;
+            if (e != null && pc != null && e.gameObject.activeInHierarchy && e.State != AIState.Inactive && e.State != AIState.Scripted)
+                prox = Mathf.Clamp01(1f - (Vector3.Distance(e.transform.position, pc.transform.position) - 1.5f) / 7f) * 0.5f;
+            proxTension = Mathf.MoveTowards(proxTension, prox, dt * 0.25f);
+            if (tension) tension.volume = Mathf.MoveTowards(tension.volume, Mathf.Max(tensionTarget, proxTension) * Settings.Sfx, dt * 0.35f);
         }
 
         public void UI(AudioClip c, float v = 1f) { if (c) ui.PlayOneShot(c, v * Settings.Sfx); }

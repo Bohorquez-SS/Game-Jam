@@ -30,7 +30,7 @@ namespace GNight
         public override void OnEsc() { }
         public override void Tick()
         {
-            if (newGame.Tick()) { UIManager.I.Close(this); GameManager.I.StartGame(Stage.Act1); }
+            if (newGame.Tick()) { UIManager.I.Close(this); GameManager.I.StartGame(Stage.C1_Noche); }
             else if (cont.Tick()) { UIManager.I.Close(this); GameManager.I.StartGame(Checkpoint.Saved); }
             else if (options.Tick()) UIManager.I.Open(UIManager.I.Get<OptionsPanel>());
             else if (quit.Tick()) GameManager.Quit();

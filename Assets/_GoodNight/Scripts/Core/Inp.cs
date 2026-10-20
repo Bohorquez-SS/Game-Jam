@@ -41,6 +41,11 @@ namespace GNight
         public static Vector2 MousePos() => M == null ? Vector2.zero : M.position.ReadValue();
         public static bool Click() => M != null && M.leftButton.wasPressedThisFrame;
         public static bool ClickHeld() => M != null && M.leftButton.isPressed;
+        public static bool RightClick() => M != null && M.rightButton.wasPressedThisFrame;
+        public static bool RightHeld() => M != null && M.rightButton.isPressed;
+        public static float Wheel() => M == null ? 0f : Mathf.Clamp(M.scroll.ReadValue().y / 120f, -1f, 1f);
+        public static bool Q() => K != null && Down(K.qKey);
+        public static bool Space() => K != null && Down(K.spaceKey);
 #else
         public static Vector2 Move()
         {
@@ -67,6 +72,11 @@ namespace GNight
         public static Vector2 MousePos() => Input.mousePosition;
         public static bool Click() => Input.GetMouseButtonDown(0);
         public static bool ClickHeld() => Input.GetMouseButton(0);
+        public static bool RightClick() => Input.GetMouseButtonDown(1);
+        public static bool RightHeld() => Input.GetMouseButton(1);
+        public static float Wheel() => Input.mouseScrollDelta.y;
+        public static bool Q() => Input.GetKeyDown(KeyCode.Q);
+        public static bool Space() => Input.GetKeyDown(KeyCode.Space);
 #endif
     }
 }

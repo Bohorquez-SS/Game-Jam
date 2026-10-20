@@ -1,26 +1,27 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace GNight
 {
-    /// <summary>Luz de una habitación (techo o lámpara) controlada por interruptor y por el circuito de iluminación.</summary>
+    /// <summary>Luz de una habitación. Las lámparas (alwaysPowered) van a otro circuito y no se apagan con el cuadro.</summary>
     public class RoomLight : MonoBehaviour
     {
         public string zone;
         public Light lightSource;
         public Renderer bulb;
         public Material onMat, offMat;
-        [HideInInspector] public bool forcedOn; // anomalía: se enciende sola
+        public bool alwaysPowered;
+        [HideInInspector] public bool forcedOn, forcedOff;
         [HideInInspector] public float flicker;
         float baseIntensity = -1f;
+        public float BaseIntensity { get { if (baseIntensity < 0 && lightSource) baseIntensity = lightSource.intensity; return baseIntensity; } }
 
-        public void Apply(bool on)
+        public void Apply(bool on, float moodScale)
         {
             if (lightSource == null) return;
-            if (baseIntensity < 0) baseIntensity = lightSource.intensity;
-            bool final = on || forcedOn;
+            bool final = (on || forcedOn) && !forcedOff;
             if (flicker > 0f) final = final && Random.value > 0.45f;
             lightSource.enabled = final;
+            lightSource.intensity = BaseIntensity * moodScale;
             if (bulb) bulb.sharedMaterial = final ? onMat : offMat;
         }
     }

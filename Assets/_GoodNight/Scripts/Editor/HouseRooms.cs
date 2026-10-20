@@ -1,0 +1,524 @@
+using UnityEngine;
+using static GNight.EditorTools.BuildKit;
+
+namespace GNight.EditorTools
+{
+    /// <summary>Habitaciones: muebles FBX + objetos interactivos de la historia.</summary>
+    public partial class HouseBuilder
+    {
+        // Caras interiores de las paredes
+        const float In = 0.06f;
+
+        // ================================================================= DORMITORIO
+        void Bedroom()
+        {
+            var g = Group("Dormitorio", root);
+            float eastIn = 0f - In, westIn = WestX + In, northIn = BedN - In;
+
+            // cama (cabecera al norte)
+            var bed = Put("bed", -3.3f, northIn - 1.06f, 180f, 0f, "Cama", g);
+            var bedComp = bed.AddComponent<Bed>();
+            // revisar debajo de la cama (cinta B)
+            var ub = new GameObject("Debajo_Cama"); ub.transform.SetParent(g, false);
+            ub.transform.position = new Vector3(-2.68f, 0.18f, 3.9f);
+            var ubc = ub.AddComponent<BoxCollider>(); ubc.size = new Vector3(0.12f, 0.3f, 1.6f);
+            underBed = ub.AddComponent<SearchSpot>(); underBed.promptEs = "Revisar debajo de la cama"; underBed.promptEn = "Look under the bed";
+            var tb = Model("vhs_tape", g, new Vector3(-3.2f, 0.01f, 3.7f), 90f, "Cinta_B");
+            tb.transform.rotation = Quaternion.Euler(90f, 70f, 0f);
+            SingleBox(tb);
+            tapeB = Item(tb, "tape_b", "Cinta VHS «B»", "VHS tape \"B\"", "Etiqueta escrita por papá: «B — pasillo». La caja está tibia, como si alguien la hubiera tenido en la mano hace un momento.",
+                         "Dad's handwriting on the label: \"B — hallway\". The case is warm, as if someone was holding it a moment ago.", true, "Cinta B", "Tape B");
+            tapeB.available = false;
+            underBed.hidden = tapeB;
+
+            // mesita de luz + reloj despertador
+            var ns = Put("nightstand", -2.45f, northIn - 0.25f, 180f, 0f, "Mesita", g);
+            var clock = Put("alarm_clock", -2.45f, northIn - 0.25f, 180f, TopY(ns), "Despertador", g);
+            var ct = Text3D("Hora", clock.transform, Vector3.zero, 0f, "23:47", 0.006f, new Color(1f, 0.25f, 0.15f));
+            ct.transform.position = WorldBounds(clock).center + FrontDir(180f) * (WorldBounds(clock).extents.z + 0.003f);
+            ct.transform.rotation = Quaternion.Euler(0, 0f, 0);
+            ct.gameObject.AddComponent<ClockDisplay>(); NoShadow(ct.gameObject);
+            var lampN = MakeLight("Luz_Despertador", clock.transform, LightType.Point, Vector3.zero, new Color(1f, 0.3f, 0.2f), 0.25f, 1.2f, LightShadows.None);
+            lampN.transform.position = ct.transform.position + Vector3.forward * -0.05f;
+
+            // escritorio contra la pared este, mirando al oeste
+            float deskZ = 2.75f;
+            var desk = AgainstWall("desk", g, new Vector3(eastIn, 0, deskZ), -90f, 0f, "Escritorio");
+            float deskTop = TopY(desk);
+            var mon = Put("crt_monitor", -0.42f, deskZ, -90f, deskTop, "Monitor_PC", g);
+            var scr = ScreenQuad(mon, -90f, new Vector2(0.29f, 0.22f), 0.55f);
+            computer = scr.AddComponent<Computer>();
+            computer.screen = scr.GetComponent<Renderer>(); computer.onMat = mScreenDesktop; computer.offMat = mMonitorOff;
+            computer.glow = MakeLight("Brillo_Pantalla", g, LightType.Point, scr.transform.position + FrontDir(-90f) * 0.35f, new Color(0.55f, 0.7f, 1f), 0.9f, 2.6f, LightShadows.None);
+            var monCol = mon.GetComponentsInChildren<Collider>(); foreach (var c in monCol) Object.DestroyImmediate(c);
+            scr.AddComponent<BoxCollider>().size = new Vector3(1.1f, 1.1f, 0.2f);
+            Put("keyboard", -0.75f, deskZ, -90f, deskTop, "Teclado", g);
+            Put("pc_tower", -0.3f, deskZ + 0.42f, -90f, 0f, "Torre", g);
+            var fan = Put("desk_fan", -0.3f, deskZ - 0.48f, -60f, deskTop, "Ventilador", g);
+            var blades = Part(fan, "Blades"); if (blades) { var sp = blades.gameObject.AddComponent<Spinner>(); sp.axis = Vector3.forward; sp.speed = 900f; }
+            Src("Zumbido_Ventilador", fan.transform, new Vector3(0, 0.2f, 0), Clip("fan_hum"), 0.18f, true, 1f, 0.5f, 4f);
+            var dl = Put("desk_lamp", -0.28f, deskZ + 0.45f, -110f, deskTop, "Lampara_Escritorio", g);
+            var dlBulb = Part(dl, "Bulb");
+            var dlLight = MakeLight("Luz_Lampara", dl.transform, LightType.Point, Vector3.zero, new Color(1f, 0.8f, 0.55f), 1.6f, 4.5f, LightShadows.Soft);
+            dlLight.transform.position = (dlBulb ? dlBulb.position : dl.transform.position + Vector3.up * 0.4f) + Vector3.down * 0.05f;
+            bedroomLamp = dlLight.gameObject.AddComponent<RoomLight>();
+            bedroomLamp.zone = "lampara"; bedroomLamp.lightSource = dlLight; bedroomLamp.alwaysPowered = true;
+            if (dlBulb) { bedroomLamp.bulb = dlBulb.GetComponentInChildren<Renderer>(); bedroomLamp.onMat = mBulbOn; bedroomLamp.offMat = mBulbOff; }
+            roomLights.Add(bedroomLamp);
+            var chair = Put("chair", -1.02f, deskZ, 90f, 0f, "Silla", g);
+            var shelf = Model("bookshelf_wall", g, Vector3.zero, -90f, "Repisa");
+            PlaceByBounds(shelf, new Vector3(eastIn - 0.13f, 0, deskZ), 1.55f);
+            var cork = Model("cork_board", g, Vector3.zero, -90f, "Corcho");
+            PlaceByBounds(cork, new Vector3(eastIn - 0.025f, 0, 1.55f), 1.15f);
+            Quad("Dibujo", cork.transform, Vector3.zero, new Vector2(0.28f, 0.2f), 0f, Lit("M_KidDrawing", "kid_drawing", Color.white)).transform
+                .SetPositionAndRotation(new Vector3(eastIn - 0.05f, 1.55f, 1.4f), Quaternion.Euler(0, 90f, 0));
+            Quad("Calendario", cork.transform, Vector3.zero, new Vector2(0.22f, 0.3f), 0f, Lit("M_Calendar", "calendar", Color.white)).transform
+                .SetPositionAndRotation(new Vector3(eastIn - 0.05f, 1.52f, 1.78f), Quaternion.Euler(0, 90f, 0));
+
+            // armario de listones (escondite) contra la pared oeste
+            var wd = AgainstWall("wardrobe_slatted", g, new Vector3(westIn, 0, 1.75f), 90f, 0f, "Armario_Dormitorio");
+            wardrobeHide = MakeHide(wd, "armario", "wardrobe", 90f, new[] { "Door_L", "Door_R" }, 1.45f);
+
+            // planta y póster
+            Put("plant", -0.35f, northIn - 0.25f, 200f, 0f, "Planta", g);
+            Quad("Poster", g, new Vector3(-3.0f, 1.6f, HallZ + In + 0.005f), new Vector2(0.6f, 0.85f), 180f, Lit("M_Poster", "poster", Color.white));
+        }
+
+        /// <summary>Escondite en un mueble con puertas (armario, alacena, locker).</summary>
+        HidingSpot MakeHide(GameObject furniture, string es, string en, float facing, string[] doorParts, float eye)
+        {
+            var b = WorldBounds(furniture);
+            var hs = furniture.AddComponent<HidingSpot>();
+            hs.nameEs = es; hs.nameEn = en; hs.insideEye = eye; hs.lookLimit = 40f;
+            Vector3 f = FrontDir(facing);
+            var inside = Group("Dentro", furniture.transform); inside.position = new Vector3(b.center.x, 0, b.center.z) - f * 0.05f; inside.rotation = Quaternion.Euler(0, facing, 0);
+            var outside = Group("Fuera", furniture.transform); outside.position = new Vector3(b.center.x, 0, b.center.z) + f * (Mathf.Abs(f.x) > 0.5f ? b.extents.x : b.extents.z) + f * 0.55f; outside.rotation = Quaternion.Euler(0, facing + 180f, 0);
+            hs.inside = inside; hs.outside = outside;
+            var doors = new System.Collections.Generic.List<Transform>(); var angles = new System.Collections.Generic.List<float>();
+            foreach (var n in doorParts) { var p = Part(furniture, n); if (p) { doors.Add(p); angles.Add(HingeSign(p, f, Vector3.up) * 100f); } }
+            hs.doors = doors.ToArray(); hs.doorOpenAngles = angles.ToArray();
+            // el interior no debe bloquear el rayo de "Salir": la raíz tiene un collider propio delante
+            var bc = furniture.AddComponent<BoxCollider>();
+            bc.center = furniture.transform.InverseTransformPoint(b.center);
+            var sz = Quaternion.Inverse(furniture.transform.rotation) * b.size; bc.size = new Vector3(Mathf.Abs(sz.x), Mathf.Abs(sz.y), Mathf.Abs(sz.z)) * 0.98f;
+            bc.isTrigger = false;
+            hs.insideBreath = Src("Respiracion", inside, new Vector3(0, eye, 0), Clip("breath"), 0.3f, false, 0f);
+            return hs;
+        }
+
+        // ================================================================= BAÑO
+        void Bathroom()
+        {
+            var g = Group("Bano", root);
+            float westIn = BathX0 + In, eastIn = SecX0 - In, northIn = NorthZ - In;
+            AgainstWall("bathtub", g, new Vector3(eastIn, 0, 2.6f), -90f, 0f, "Banera");
+            AgainstWall("toilet", g, new Vector3(0.6f, 0, northIn), 180f, 0f, "Inodoro");
+            var sink = AgainstWall("bath_sink", g, new Vector3(westIn, 0, 2.0f), 90f, 0f, "Lavabo");
+            AgainstWall("towel_rack", g, new Vector3(westIn, 0, 3.15f), 90f, 1.25f, "Toallero");
+            // botiquín con espejo (cinta C dentro)
+            var cab = AgainstWall("mirror_cabinet", g, new Vector3(westIn, 0, 2.0f), 90f, 1.2f, "Botiquin");
+            var cb = WorldBounds(cab);
+            var tc = Model("vhs_tape", g, Vector3.zero, 90f, "Cinta_C");
+            tc.transform.position = new Vector3(westIn + 0.06f, cb.min.y + 0.06f, cb.center.z);
+            SingleBox(tc);
+            tapeC = Item(tc, "tape_c", "Cinta VHS «C»", "VHS tape \"C\"", "«C — porche». Detrás del espejo, envuelta en una toalla húmeda. Papá no escondía cosas en el baño.",
+                         "\"C — porch\". Behind the mirror, wrapped in a damp towel. Dad never hid things in the bathroom.", true, "Cinta C", "Tape C");
+            var door = Part(cab, "Door");
+            var dr = MakeDrawer(door, "botiquin", "botiquín", "cabinet", FrontDir(90f), true, 105f, tapeC);
+            if (dr) tapeC.available = false;
+            // superficie del espejo (quad mirando a +X) y reflejo
+            var surfT = door != null ? door : cab.transform;
+            var mq = Quad("Espejo", surfT, Vector3.zero, new Vector2(0.5f, 0.6f), 0f, mGlass);
+            mq.transform.position = new Vector3(cb.max.x + 0.004f, cb.center.y, cb.center.z + 0.1f);
+            mq.transform.rotation = Quaternion.Euler(0, -90f, 0);
+            mq.transform.localScale = new Vector3(0.5f / surfT.lossyScale.x, 0.6f / surfT.lossyScale.y, 1f);
+            var mg = new GameObject("Reflejo"); mg.transform.SetParent(g, false);
+            mirror = mg.AddComponent<MirrorReflection>();
+            mirror.surface = mq.GetComponent<Renderer>();
+            var mc = new GameObject("Camara_Espejo"); mc.transform.SetParent(mg.transform, false);
+            mirror.mirrorCam = mc.AddComponent<Camera>(); mirror.mirrorCam.fieldOfView = 60f; mirror.mirrorCam.farClipPlane = 12f;
+            mirror.mirrorCam.clearFlags = CameraClearFlags.SolidColor; mirror.mirrorCam.backgroundColor = Color.black;
+            mirror.zone = "bano";
+            bathroomInside = Src("Sonido_Bano", g, new Vector3(1.4f, 1.2f, 2.4f), null, 1f, false, 1f, 1f, 10f);
+        }
+
+        // ================================================================= PASILLO
+        void Hallway()
+        {
+            var g = Group("Pasillo", root);
+            float northIn = HallZ - In, southIn = -HallZ + In;
+            // armario del pasillo que tapa la puerta 06 (se desliza hacia -X)
+            var hw = Model("hall_wardrobe", g, Vector3.zero, 180f, "Armario_Pasillo");
+            var hb = WorldBounds(hw);
+            float sx = Mathf.Min(1f, 1.35f / Mathf.Max(0.1f, hb.size.x));
+            hw.transform.localScale = new Vector3(sx, 1f, 1f);
+            PlaceByBounds(hw, new Vector3(DoorMetalX, 0, northIn - WorldBounds(hw).extents.z - 0.005f), 0f);
+            var holder = Group("Armario_Deslizante", g);
+            holder.position = Vector3.zero;
+            hw.transform.SetParent(holder, true);
+            wardrobe = holder.gameObject.AddComponent<SlidingWardrobe>();
+            hb = WorldBounds(hw);
+            wardrobe.slideOffset = new Vector3(-(hb.size.x + 0.05f), 0, 0);
+            // cerradura pequeña en el frente
+            var kh = Box("Cerradura", hw.transform, Vector3.zero, new Vector3(0.05f, 0.07f, 0.02f), PaletteMat("Brass"), 1f);
+            kh.transform.position = new Vector3(hb.center.x + 0.1f, 1.12f, hb.min.z - 0.008f);
+            kh.transform.rotation = Quaternion.identity;
+            kh.transform.localScale = new Vector3(1f / sx, 1f, 1f);
+            wardrobeKeyhole = kh.AddComponent<ItemTarget>();
+            wardrobeKeyhole.itemId = "key"; wardrobeKeyhole.eventId = "wardrobe_unlocked";
+            wardrobeKeyhole.useEs = "Usar la llave 06"; wardrobeKeyhole.useEn = "Use the 06 key"; wardrobeKeyhole.lookEs = "Examinar cerradura"; wardrobeKeyhole.lookEn = "Examine lock";
+            wardrobeKeyhole.noItemEs = "Una cerradura diminuta en un armario que nunca se abrió. Necesito una llave."; wardrobeKeyhole.noItemEn = "A tiny lock on a wardrobe that was never opened. I need a key.";
+
+            // foto del pasillo
+            var ph = Model("photo_frame_wall", g, Vector3.zero, 180f, "Foto_Pasillo");
+            PlaceByBounds(ph, new Vector3(-0.9f, 0, northIn - 0.012f), 1.35f);
+            var pic = Part(ph, "Picture");
+            if (pic) foreach (var r in pic.GetComponentsInChildren<Renderer>()) r.sharedMaterial = Lit("M_PhotoHall", "photo_hall_2014", Color.white, 0.2f);
+            SingleBox(ph);
+            photoHall = Item(ph, "photo_hall", "Foto del pasillo", "Hallway photo", "Papá, mamá y yo en este mismo pasillo, en 2014. Al fondo hay una puerta con un «06» pintado... donde hoy está el armario.",
+                             "Dad, mom and me in this same hallway, 2014. In the back there's a door with a painted \"06\"... where the wardrobe stands today.", false, null, null, 0.3f);
+            photoHall.clueId = "photo2014"; photoHall.clueEs = "En una foto de 2014 se ve una puerta «06» donde hoy está el armario del pasillo."; photoHall.clueEn = "A 2014 photo shows a door marked \"06\" where the hallway wardrobe stands today.";
+
+            Model("wall_clock", g, Vector3.zero, -90f, "Reloj_Pasillo").transform.position = new Vector3(EastX - In - 0.03f, 1.9f, 0f);
+            Put("side_table", -3.3f, southIn + 0.19f, 0f, 0f, "Consola_Pasillo", g);
+            Put("plant", -3.75f, northIn - 0.2f, 0f, 0f, "Planta_Pasillo", g);
+
+            hallStepPath = new[] { Group("Paso_0", g, new Vector3(-3.4f, 0, 0)), Group("Paso_1", g, new Vector3(4.2f, 0, 0)) };
+            secretWall = Src("Muro_06", g, new Vector3(DoorMetalX, 1.3f, HallZ + 0.4f), null, 1f, false, 1f, 1f, 10f);
+        }
+
+        // ================================================================= HABITACIÓN 06
+        void Secret()
+        {
+            var g = Group("Habitacion_06", root);
+            float westIn = SecX0 + In, eastIn = EastX - In, northIn = NorthZ - In;
+            var desk = AgainstWall("secret_desk", g, new Vector3(3.55f, 0, northIn), 180f, 0f, "Escritorio_06");
+            float top = SurfaceY(new Vector3(3.55f, 2.5f, northIn - 0.3f), 0.76f);
+            float[] xs = { 2.97f, 3.55f, 4.13f };
+            for (int i = 0; i < 3; i++)
+            {
+                var m = Put("crt_monitor", xs[i], northIn - 0.32f, 180f, top, "Monitor_06_" + i, g);
+                secretMonitors[i] = Monitor(m, 180f, new Vector2(0.29f, 0.22f), 0.55f, "secreta");
+            }
+            Put("cable_bundle", 3.2f, 2.4f, 20f, 0f, "Cables", g);
+            // grabadora de carrete
+            var rr = Put("reel_recorder", 3.0f, northIn - 0.62f, 180f, top, "Grabadora", g);
+            SingleBox(rr);
+            recorderSlot = rr.AddComponent<ItemTarget>();
+            recorderSlot.itemId = "reel"; recorderSlot.eventId = "reel_loaded";
+            recorderSlot.useEs = "Colocar la cinta de carrete"; recorderSlot.useEn = "Load the reel tape"; recorderSlot.lookEs = "Examinar grabadora"; recorderSlot.lookEn = "Examine recorder";
+            recorderSlot.noItemEs = "Una grabadora de carrete. Le falta la cinta."; recorderSlot.noItemEn = "A reel-to-reel recorder. The tape is missing.";
+            var recBtn = Box("Boton_Play", rr.transform, Vector3.zero, new Vector3(0.03f, 0.015f, 0.03f), mBeige, 1f);
+            recBtn.transform.position = WorldBounds(rr).center + new Vector3(0.12f, 0.08f, -0.1f);
+            recorder = recBtn.AddComponent<StoryInteractable>(); recorder.eventId = "recorder_play"; recorder.available = false;
+            recorder.promptEs = "Reproducir"; recorder.promptEn = "Play";
+            // documentos
+            plan = Doc("plan", "blueprint", null, new Vector3(3.6f, top + 0.005f, northIn - 0.6f), 190f, new Vector2(0.42f, 0.3f),
+                "Plano de la casa", "House blueprint", "Plano de obra de 1998. La casa tiene SEIS habitaciones. En la versión que conozco solo hay cinco. La sexta está marcada en rojo: «06 — GUARDIÁN».",
+                "1998 building plan. The house has SIX rooms. The one I know only has five. The sixth is marked in red: \"06 — GUARDIAN\".", g);
+            plan.clueId = "plan06"; plan.clueEs = "El plano original muestra una sexta habitación: la 06, sede de GUARDIÁN."; plan.clueEn = "The original plan shows a sixth room: 06, home of GUARDIAN.";
+            fatherNotes = Doc("fatherNotes", "note_father31", null, new Vector3(4.15f, top + 0.005f, northIn - 0.6f), 170f, new Vector2(0.21f, 0.28f),
+                "Notas de papá", "Dad's notes", "«Día 31. La casa no deja entrar a nadie: los HACE. Aparecen en una habitación sin cruzar ninguna puerta. Una copia no recuerda haber llegado; recuerda haber estado siempre. Si GUARDIÁN cuenta dos... uno de ellos no nació.»",
+                "\"Day 31. The house doesn't let anyone in: it MAKES them. They appear in a room without crossing any door. A copy doesn't remember arriving; it remembers having always been there. If GUARDIAN counts two... one of them was never born.\"", g);
+            // palanca de energía auxiliar
+            var lev = AgainstWall("generator_lever", g, new Vector3(westIn, 0, 3.1f), 90f, 1.05f, "Palanca_Auxiliar");
+            SingleBox(lev);
+            auxLever = lev.AddComponent<StoryInteractable>(); auxLever.eventId = "aux_lever"; auxLever.available = false; auxLever.once = true;
+            auxLever.promptEs = "Bajar la palanca: ENERGÍA AUXILIAR"; auxLever.promptEn = "Pull the lever: AUX POWER";
+            // archivador con la cinta de carrete encima
+            var fc = AgainstWall("filing_cabinet", g, new Vector3(westIn, 0, 1.75f), 90f, 0f, "Archivador");
+            var rl = Put("tape_reel", WorldBounds(fc).center.x, 1.75f, 30f, TopY(fc), "Cinta_Carrete", g);
+            SingleBox(rl);
+            reel = Item(rl, "reel", "Cinta de carrete", "Reel tape", "Etiqueta: «PARA MI HIJO. SI GUARDIÁN CUENTA DOS».", "Label: \"FOR MY SON. IF GUARDIAN COUNTS TWO\".", true, "Cinta de carrete", "Reel tape");
+            reel.available = false;
+            // consola de aislamiento contra la pared este
+            var con = AgainstWall("isolation_console", g, new Vector3(eastIn, 0, 2.05f), -90f, 0f, "Consola_Aislamiento");
+            isolation = con.AddComponent<IsolationStation>();
+            isolation.stationId = "isolation"; isolation.promptEs = "Usar consola de aislamiento"; isolation.promptEn = "Use isolation console";
+            isolation.view = View("Vista_Aislamiento", new Vector3(3.6f, 1.5f, 2.05f), WorldBounds(con).center + Vector3.up * 0.25f);
+            string[] btn = { "Btn_0", "Btn_1", "Btn_2" };
+            string[] lab = { "AISLAR\nCOCINA", "AISLAR\nDORMITORIO", "AISLAR\n06" };
+            PushButton[] pbs = new PushButton[3];
+            for (int i = 0; i < 3; i++)
+            {
+                var p = Part(con, btn[i]);
+                if (p == null) { p = Box("Boton_" + i, con.transform, Vector3.zero, new Vector3(0.08f, 0.03f, 0.08f), PaletteMat("Red"), 1f).transform; p.position = WorldBounds(con).center + new Vector3(-0.1f, 0.48f, -0.25f + i * 0.25f); }
+                pbs[i] = p.gameObject.AddComponent<PushButton>();
+                pbs[i].labelEs = lab[i].Replace("\n", " "); pbs[i].labelEn = new[] { "ISOLATE KITCHEN", "ISOLATE BEDROOM", "ISOLATE 06" }[i];
+                pbs[i].clip = Clip("click");
+                var t = Text3D("Etiqueta_" + i, con.transform, Vector3.zero, 0f, lab[i], 0.0045f, new Color(0.95f, 0.9f, 0.8f));
+                t.transform.position = PartCenter(p) + new Vector3(-0.12f, 0.02f, 0f);
+                t.transform.rotation = Quaternion.Euler(70f, -90f, 0);
+            }
+            isolation.isoKitchen = pbs[0]; isolation.isoBedroom = pbs[1]; isolation.isoSelf = pbs[2];
+            var scrT = Text3D("Pantalla_Sensores", con.transform, Vector3.zero, 0f, "", 0.0042f, new Color(0.4f, 1f, 0.5f), TextAnchor.UpperLeft);
+            var cbb = WorldBounds(con);
+            scrT.transform.position = new Vector3(cbb.center.x - 0.05f, cbb.max.y + 0.02f, cbb.center.z - 0.38f);
+            scrT.transform.rotation = Quaternion.Euler(60f, -90f, 0);
+            isolation.screen = scrT;
+            isolationDoc = Doc("isolationDoc", "note_isolation", null, new Vector3(cbb.center.x - 0.1f, cbb.max.y + 0.004f, cbb.center.z + 0.3f), -80f, new Vector2(0.21f, 0.28f),
+                "Manual GUARDIÁN", "GUARDIAN manual", "«Aislamiento: sella una zona. Lo que queda dentro no sale.\n· Un sensor que parpadea a ritmo fijo es un ECO.\n· Una cámara con REC y una hora vieja está CONGELADA.\n· Aísle solo lo que confirmen un sensor estable y una cámara en DIRECTO.\n· Requiere ALARMA + CÁMARAS + CERRADURAS.»",
+                "\"Isolation: seals a zone. Whatever stays inside doesn't come out.\n· A sensor blinking at a steady rhythm is an ECHO.\n· A camera showing REC and an old time is FROZEN.\n· Only isolate what a steady sensor AND a LIVE camera confirm.\n· Requires ALARM + CAMERAS + LOCKS.\"", g);
+            // locker (escondite)
+            var lk = AgainstWall("locker", g, new Vector3(4.2f, 0, HallZ + In), 0f, 0f, "Locker");
+            lockerHide = MakeHide(lk, "casillero", "locker", 0f, new[] { "Door" }, 1.5f);
+            var cork = Model("cork_board", g, Vector3.zero, 90f, "Corcho_06");
+            PlaceByBounds(cork, new Vector3(westIn + 0.025f, 0, 2.45f), 1.2f);
+            Text3D("Cartel", g, new Vector3(3.55f, 2.2f, northIn - 0.01f), 180f, "GUARDIÁN · NODO 06", 0.01f, new Color(0.8f, 0.2f, 0.15f));
+        }
+
+        /// <summary>Altura de la superficie bajo un punto (raycast hacia abajo); 'fallback' si no hay nada.</summary>
+        static float SurfaceY(Vector3 from, float fallback)
+        {
+            Physics.SyncTransforms();
+            RaycastHit h;
+            if (Physics.Raycast(from, Vector3.down, out h, 5f, ~0, QueryTriggerInteraction.Ignore) && h.point.y > 0.1f) return h.point.y;
+            return fallback;
+        }
+
+        /// <summary>Punto de vista de una estación (cámara de enfoque).</summary>
+        Transform View(string name, Vector3 eye, Vector3 lookAt)
+        {
+            var t = Group(name, root, eye);
+            t.rotation = Quaternion.LookRotation(lookAt - eye, Vector3.up);
+            return t;
+        }
+
+        // ================================================================= SALA
+        void Living()
+        {
+            var g = Group("Sala", root);
+            float northIn = -HallZ - In, southIn = SouthZ + In, westIn = WestX + In, eastIn = KitX0 - In;
+            // TV + videograbadora contra la pared norte (oeste del arco)
+            var tv = AgainstWall("tv_stand", g, new Vector3(-3.0f, 0, northIn), 180f, 0f, "TV");
+            var tvB = WorldBounds(tv);
+            var tvScreen = Monitor(tv, 180f, new Vector2(0.5f, 0.38f), 0.72f, "sala");
+            float standTop = SurfaceY(new Vector3(-3.0f, 2.0f, tvB.min.z + 0.15f), 0.5f);
+            if (standTop > 1.0f) standTop = 0.5f;
+            var vcrM = Put("vcr_deck", -3.0f, tvB.min.z + 0.2f, 180f, standTop, "Videograbadora", g);
+            BuildVCR(g, vcrM, tvScreen);
+            // sofá frente a la TV, mesa ratona y sillón
+            Put("sofa", -3.0f, -3.55f, 0f, 0f, "Sofa", g);
+            Put("coffee_table", -3.0f, -2.45f, 0f, 0f, "Mesa_Ratona", g);
+            Put("armchair", -1.35f, -2.6f, -60f, 0f, "Sillon", g);
+            var fl = Put("floor_lamp", westIn + 0.3f, -4.85f, 45f, 0f, "Lampara_Pie", g);
+            var flL = MakeLight("Luz_Lampara_Pie", fl.transform, LightType.Point, Vector3.zero, new Color(1f, 0.78f, 0.5f), 1.4f, 5f, LightShadows.None);
+            flL.transform.position = WorldBounds(fl).center + Vector3.up * 0.6f;
+            var flr = flL.gameObject.AddComponent<RoomLight>(); flr.zone = "sala"; flr.lightSource = flL; roomLights.Add(flr);
+            AgainstWall("tall_bookcase", g, new Vector3(westIn, 0, -1.55f), 90f, 0f, "Biblioteca");
+            Put("plant", eastIn - 0.25f, southIn + 0.25f, 0f, 0f, "Planta_Sala", g);
+            var wc = Model("wall_clock", g, Vector3.zero, 180f, "Reloj_Sala"); PlaceByBounds(wc, new Vector3(-3.0f, 0, northIn - 0.03f), 1.95f);
+
+            // cómoda (recibo en el cajón 0, cinta A en el cajón 1) + foto familiar
+            var dr = AgainstWall("dresser", g, new Vector3(0.3f, 0, northIn), 180f, 0f, "Comoda");
+            var drB = WorldBounds(dr);
+            receipt = Doc("receipt", "receipt_front", "receipt_back", Vector3.zero, 180f, new Vector2(0.09f, 0.18f), "Recibo del cerrajero", "Locksmith receipt",
+                "«Cerrajería Ramírez — Cambio de cerradura y cerrojo interior. Fecha: 23/08.» Hay algo escrito atrás.",
+                "\"Ramírez Locksmiths — Lock and inner deadbolt replacement. Date: 23/08.\" There's something written on the back.", g);
+            receipt.backTextEs = "Con la letra de mamá: «Nuevo PIN de la alarma = día y mes del cambio de cerradura. No lo anotes en ningún otro lado.»";
+            receipt.backTextEn = "In mom's handwriting: \"New alarm PIN = day and month of the lock change. Don't write it anywhere else.\"";
+            receipt.collect = true; receipt.invNameEs = "Recibo"; receipt.invNameEn = "Receipt";
+            receipt.clueId = "pin"; receipt.clueEs = "PIN de la alarma: 2308 (día en que cambiaron la cerradura)."; receipt.clueEn = "Alarm PIN: 2308 (the day the lock was changed)."; receipt.clueOnBack = true;
+            var ta = Model("vhs_tape", g, Vector3.zero, 180f, "Cinta_A");
+            SingleBox(ta);
+            tapeA = Item(ta, "tape_a", "Cinta VHS «A»", "VHS tape \"A\"", "«A — cocina». Debajo de los manteles de la abuela. Alguien la puso aquí hace poco: no tiene polvo.",
+                         "\"A — kitchen\". Under grandma's tablecloths. Someone put it here recently: there's no dust on it.", true, "Cinta A", "Tape A");
+            var d0 = Part(dr, "Drawer_0"); var d1 = Part(dr, "Drawer_1");
+            if (d0) { receipt.transform.SetParent(d0, true); receipt.transform.position = PartCenter(d0) + Vector3.up * 0.02f; }
+            if (d1) { ta.transform.SetParent(d1, true); ta.transform.position = PartCenter(d1) + Vector3.up * 0.01f; ta.transform.rotation = Quaternion.Euler(90f, 20f, 0); }
+            MakeDrawer(d0, "comoda_0", "cajón", "drawer", FrontDir(180f), false, 0.3f, receipt);
+            MakeDrawer(d1, "comoda_1", "cajón", "drawer", FrontDir(180f), false, 0.3f, tapeA);
+            MakeDrawer(Part(dr, "Drawer_2"), "comoda_2", "cajón", "drawer", FrontDir(180f), false, 0.3f);
+            receipt.available = false; tapeA.available = false;
+            var pf = Put("photo_frame_stand", drB.center.x - 0.25f, drB.center.z, 200f, drB.max.y, "Foto_Familia", g);
+            var pic = Part(pf, "Picture");
+            if (pic) { photoFamilyPicture = pic.GetComponentInChildren<Renderer>(); photoFamilyPicture.sharedMaterial = Lit("M_PhotoFamily", "photo_family", Color.white, 0.2f); }
+            SingleBox(pf);
+            photoFamily = Item(pf, "photo_family", "Foto familiar", "Family photo", "Mamá, papá y yo frente a la casa. Papá tiene la mano en mi hombro.", "Mom, dad and me in front of the house. Dad has his hand on my shoulder.", false, null, null, 0.26f);
+
+            // escritorio de vigilancia contra la pared este (sur del paso a la cocina)
+            var sd = AgainstWall("security_desk", g, new Vector3(eastIn, 0, -3.65f), -90f, 0f, "Escritorio_Camaras");
+            float sdTop = TopY(sd);
+            var cm = Put("crt_monitor", WorldBounds(sd).center.x + 0.06f, -3.65f, -90f, sdTop, "Monitor_Camaras", g);
+            var camMon = Monitor(cm, -90f, new Vector2(0.29f, 0.22f), 0.55f, "sala");
+            var sw = Put("camera_switcher", WorldBounds(sd).center.x - 0.18f, -3.65f, -90f, sdTop, "Selector_Camaras", g);
+            cameraDesk = sd.AddComponent<CameraDeskStation>();
+            cameraDesk.stationId = "cameras"; cameraDesk.promptEs = "Usar monitor de cámaras"; cameraDesk.promptEn = "Use camera monitor";
+            cameraDesk.monitor = camMon; cameraDesk.index = 1;
+            cameraDesk.view = View("Vista_Camaras", new Vector3(-0.05f, 1.32f, -3.65f), PartCenter(cm.transform) + new Vector3(0, 0.02f, 0));
+            for (int i = 0; i < 4; i++)
+            {
+                var p = Part(sw, "Btn_" + i);
+                if (p == null) continue;
+                var pb = p.gameObject.AddComponent<PushButton>(); pb.labelEs = "CAM 0" + (i + 1); pb.labelEn = "CAM 0" + (i + 1); pb.clip = Clip("click");
+                cameraDesk.camButtons[i] = pb;
+            }
+            var mb = Part(sw, "Btn_4");
+            if (mb) { cameraDesk.modeButton = mb.gameObject.AddComponent<PushButton>(); cameraDesk.modeButton.labelEs = "ARCHIVO / DIRECTO"; cameraDesk.modeButton.labelEn = "ARCHIVE / LIVE"; cameraDesk.modeButton.clip = Clip("click"); }
+            Text3D("Rotulo", sw.transform, Vector3.zero, 0f, "1   2   3   4   A/D", 0.0035f, Color.white).transform
+                .SetPositionAndRotation(WorldBounds(sw).center + new Vector3(0.07f, 0.045f, 0), Quaternion.Euler(70f, -90f, 0));
+
+            // perchero con el abrigo de papá (llave en el bolsillo)
+            var cr = Put("coat_rack", westIn + 0.35f, southIn + 0.35f, 45f, 0f, "Perchero", g);
+            var coat = Part(cr, "Coat");
+            var cp = new GameObject("Bolsillo_Abrigo"); cp.transform.SetParent(cr.transform, false);
+            cp.transform.position = coat != null ? PartCenter(coat) : WorldBounds(cr).center;
+            var cpc = cp.AddComponent<BoxCollider>(); cpc.size = new Vector3(0.45f, 0.6f, 0.45f);
+            coatPocket = cp.AddComponent<SearchSpot>(); coatPocket.promptEs = "Revisar el abrigo de papá"; coatPocket.promptEn = "Search dad's coat"; coatPocket.available = false;
+            coatPocket.emptyEs = "Huele a su colonia. No hay nada más."; coatPocket.emptyEn = "It smells like his cologne. Nothing else.";
+            var kg = Box("Llave_06", cp.transform, Vector3.zero, new Vector3(0.05f, 0.012f, 0.02f), PaletteMat("Brass"), 1f);
+            kg.transform.position = cp.transform.position; kg.SetActive(true);
+            key = Item(kg, "key", "Llave pequeña", "Small key", "Una llave diminuta de bronce. Tiene grabado «06».", "A tiny brass key. It has \"06\" engraved on it.", true, "Llave 06", "06 key", 0.12f);
+            key.available = false;
+            foreach (var r in kg.GetComponentsInChildren<Renderer>()) r.enabled = false;
+
+            // panel de alarma junto a la puerta
+            var ap = Model("alarm_panel", g, Vector3.zero, 0f, "Panel_Alarma");
+            PlaceByBounds(ap, new Vector3(-1.25f, 0, southIn + 0.04f), 1.25f);
+            alarmKeypad = ap.AddComponent<AlarmKeypadStation>();
+            alarmKeypad.stationId = "alarm"; alarmKeypad.promptEs = "Usar panel de alarma"; alarmKeypad.promptEn = "Use alarm panel";
+            var apB = WorldBounds(ap);
+            alarmKeypad.view = View("Vista_Alarma", new Vector3(apB.center.x, apB.center.y + 0.05f, apB.center.z + 0.5f), apB.center);
+            for (int i = 0; i < 10; i++)
+            {
+                var p = Part(ap, "Btn_" + i); if (p == null) continue;
+                var pb = p.gameObject.AddComponent<PushButton>(); pb.key = i.ToString(); pb.labelEs = pb.labelEn = i.ToString(); pb.clip = Clip("key_beep");
+                alarmKeypad.digits[i] = pb;
+            }
+            var bs = Part(ap, "Btn_s"); if (bs) { alarmKeypad.clearBtn = bs.gameObject.AddComponent<PushButton>(); alarmKeypad.clearBtn.labelEs = "* BORRAR"; alarmKeypad.clearBtn.labelEn = "* CLEAR"; alarmKeypad.clearBtn.clip = Clip("key_beep"); }
+            var bh = Part(ap, "Btn_h"); if (bh) { alarmKeypad.okBtn = bh.gameObject.AddComponent<PushButton>(); alarmKeypad.okBtn.labelEs = "# ACTIVAR"; alarmKeypad.okBtn.labelEn = "# ARM"; alarmKeypad.okBtn.clip = Clip("key_beep"); }
+            var aps = Text3D("Pantalla_Alarma", ap.transform, Vector3.zero, 0f, "", 0.0035f, new Color(0.35f, 1f, 0.45f));
+            aps.transform.SetPositionAndRotation(new Vector3(apB.center.x, apB.max.y - 0.07f, apB.max.z + 0.004f), Quaternion.Euler(0, 180f, 0));
+            alarmKeypad.screen = aps;
+
+            frontDoorOutside = Src("Exterior_Puerta", g, new Vector3(FrontX, 1.2f, SouthZ - 0.7f), null, 1f, false, 1f, 1.5f, 16f);
+        }
+
+        void BuildVCR(Transform g, GameObject vcrM, MonitorScreen tv)
+        {
+            SingleBox(vcrM);
+            vcr = vcrM.AddComponent<VCRStation>();
+            vcr.stationId = "vcr"; vcr.promptEs = "Usar videograbadora"; vcr.promptEn = "Use VCR";
+            vcr.tv = tv;
+            var vb = WorldBounds(vcrM);
+            vcr.view = View("Vista_VCR", new Vector3(vb.center.x, 1.05f, vb.center.z - 1.25f), new Vector3(vb.center.x, 0.85f, vb.center.z + 0.1f));
+            // ranura y EJECT
+            var slot = Box("Ranura", vcrM.transform, Vector3.zero, new Vector3(0.2f, 0.025f, 0.02f), mBlack, 1f);
+            slot.transform.SetPositionAndRotation(new Vector3(vb.center.x - 0.05f, vb.center.y + 0.01f, vb.min.z - 0.008f), Quaternion.identity);
+            vcr.slot = slot.AddComponent<VcrSlot>(); vcr.slot.labelEs = "Insertar cinta"; vcr.slot.labelEn = "Insert tape";
+            var ej = Box("Eject", vcrM.transform, Vector3.zero, new Vector3(0.03f, 0.015f, 0.015f), mBeige, 1f);
+            ej.transform.SetPositionAndRotation(new Vector3(vb.center.x + 0.14f, vb.center.y + 0.01f, vb.min.z - 0.008f), Quaternion.identity);
+            vcr.ejectBtn = ej.AddComponent<PushButton>(); vcr.ejectBtn.labelEs = "EJECT"; vcr.ejectBtn.labelEn = "EJECT"; vcr.ejectBtn.clip = Clip("click");
+            // cajas de cintas para ordenar (aparecen al verlas)
+            string[] ids = { "tape_a", "tape_b", "tape_c" }; string[] letters = { "A", "B", "C" };
+            string[] stamps = { "22:47", "01:24", "22:10" };
+            string[] clueEs = { "Cinta A (22:47): el chico que llegó a las 22:10 está en la cocina. Se sirve agua. Mira hacia el pasillo, como si oyera algo.",
+                                "Cinta B (01:24): el pasillo. Una figura con mi ropa camina hacia la cámara y se detiene. Pero la cinta marca una hora que todavía no pasó.",
+                                "Cinta C (22:10): alguien igual a mí llega por el camino, abre la puerta principal con su llave y entra." };
+            string[] clueEn = { "Tape A (22:47): the boy who arrived at 22:10 is in the kitchen. He pours some water. He looks toward the hallway, as if he heard something.",
+                                "Tape B (01:24): the hallway. A figure in my clothes walks toward the camera and stops. But the tape shows a time that hasn't happened yet.",
+                                "Tape C (22:10): someone identical to me walks up the path, opens the front door with his key and comes in." };
+            vcr.tapes = new TapeData[3];
+            for (int i = 0; i < 3; i++)
+            {
+                var box = Model("vhs_tape", g, Vector3.zero, 180f, "Caja_" + letters[i]);
+                PlaceByBounds(box, new Vector3(vb.center.x - 0.42f + i * 0.13f, 0, vb.center.z), vb.min.y);
+                SingleBox(box);
+                var tbx = box.AddComponent<TapeBox>(); tbx.labelEs = "Cinta " + letters[i] + " (" + stamps[i] + ")"; tbx.labelEn = "Tape " + letters[i] + " (" + stamps[i] + ")";
+                var lt = Text3D("Letra", box.transform, Vector3.zero, 0f, letters[i], 0.01f, Color.white);
+                lt.transform.SetPositionAndRotation(WorldBounds(box).center + Vector3.forward * -0.02f, Quaternion.identity);
+                vcr.tapes[i] = new TapeData { id = ids[i], letter = letters[i], stamp = stamps[i], clueEs = clueEs[i], clueEn = clueEn[i], box = box, duration = 14f };
+            }
+        }
+
+        // ================================================================= COCINA
+        void Kitchen()
+        {
+            var g = Group("Cocina", root);
+            float southIn = SouthZ + In, eastIn = EastX - In, northIn = -HallZ - In;
+            var kb = AgainstWall("kitchen_base", g, new Vector3(3.2f, 0, southIn), 0f, 0f, "Mesada");
+            var kbB = WorldBounds(kb);
+            float counter = SurfaceY(new Vector3(2.4f, 2.0f, kbB.center.z), 0.92f);
+            if (counter > 1.05f) counter = 0.92f;
+            kitchenDrawerSlam = MakeDrawer(Part(kb, "Drawer_0"), "cocina_0", "cajón", "drawer", FrontDir(0f), false, 0.28f);
+            MakeDrawer(Part(kb, "Drawer_1"), "cocina_1", "cajón", "drawer", FrontDir(0f), false, 0.28f);
+            MakeDrawer(Part(kb, "Drawer_2"), "cocina_2", "cajón", "drawer", FrontDir(0f), false, 0.28f);
+            for (int i = 0; i < 3; i++) MakeDrawer(Part(kb, "Door_" + i), "alacena_" + i, "puerta", "cabinet door", FrontDir(0f), true, 95f);
+            AgainstWall("stove", g, new Vector3(1.7f, 0, southIn), 0f, 0f, "Cocina_Estufa");
+            AgainstWall("fridge", g, new Vector3(eastIn, 0, -1.45f), -90f, 0f, "Heladera");
+            var pan = AgainstWall("pantry", g, new Vector3(eastIn, 0, -2.45f), -90f, 0f, "Alacena");
+            pantryHide = MakeHide(pan, "alacena", "pantry", -90f, new[] { "Door" }, 1.45f);
+            Put("kitchen_table", 2.55f, -3.15f, 0f, 0f, "Mesa_Cocina", g);
+            Put("chair", 2.55f, -2.45f, 180f, 0f, "Silla_1", g);
+            Put("chair", 2.55f, -3.85f, 0f, 0f, "Silla_2", g);
+            platesSource = Src("Platos", g, new Vector3(2.4f, counter + 0.2f, kbB.center.z), Clip("plates"), 1f, false, 1f, 1.5f, 16f);
+            kitchenVoice = Src("Voz_Cocina", g, new Vector3(2.2f, 1.5f, -3.4f), null, 1f, false, 1f, 1.5f, 14f);
+            Src("Heladera_Zumbido", g, new Vector3(eastIn - 0.3f, 1f, -1.45f), Clip("electric_hum"), 0.12f, true, 1f, 0.5f, 5f);
+
+            // linterna sobre la mesada
+            var fl = Model("fp_hands", g, Vector3.zero, 0f, "Linterna_Mesada", false);
+            foreach (Transform c in fl.transform) c.gameObject.SetActive(c.name == "Flashlight");
+            var flPart = Part(fl, "Flashlight");
+            if (flPart != null) { flPart.SetParent(g, true); Object.DestroyImmediate(fl); fl = flPart.gameObject; }
+            fl.name = "Linterna_Mesada";
+            PlaceByBounds(fl, new Vector3(3.9f, 0, kbB.center.z + 0.05f), counter);
+            fl.transform.rotation *= Quaternion.Euler(0, 35f, 0);
+            SingleBox(fl);
+            flashlightPickup = fl.AddComponent<FlashlightPickup>();
+
+            // cuadro eléctrico en la pared este + nota + caja de herramientas con el fusible
+            var bx = Model("breaker_box", g, Vector3.zero, -90f, "Cuadro_Electrico");
+            PlaceByBounds(bx, new Vector3(eastIn - 0.09f, 0, -3.75f), 1.05f);
+            breaker = bx.AddComponent<BreakerStation>();
+            breaker.stationId = "breaker"; breaker.promptEs = "Abrir cuadro eléctrico"; breaker.promptEn = "Open breaker panel";
+            var bxB = WorldBounds(bx);
+            breaker.view = View("Vista_Cuadro", new Vector3(bxB.center.x - 0.62f, bxB.center.y + 0.1f, bxB.center.z), bxB.center);
+            breaker.door = Part(bx, "Door");
+            if (breaker.door) breaker.doorAngle = HingeSign(breaker.door, FrontDir(-90f), Vector3.up) * 110f;
+            string[] labels = { "1 · ALARMA (3)", "2 · CÁMARAS (2)", "3 · CERRADURAS (2)", "4 · LUCES (3)", "5 · ??? (2)" };
+            for (int i = 0; i < 5; i++)
+            {
+                var sp = Part(bx, "Switch_" + i);
+                if (sp == null) continue;
+                var lv = sp.gameObject.AddComponent<Lever>();
+                lv.handle = sp; lv.angle = 28f; lv.labelEs = labels[i]; lv.labelEn = new[] { "1 · ALARM (3)", "2 · CAMERAS (2)", "3 · LOCKS (2)", "4 · LIGHTS (3)", "5 · ??? (2)" }[i];
+                var led = Box("LED_" + i, bx.transform, Vector3.zero, new Vector3(0.015f, 0.015f, 0.015f), mLedOff, 1f, false);
+                led.transform.position = PartCenter(sp) + new Vector3(-0.03f, 0.07f, 0f);
+                lv.led = led.GetComponent<Renderer>(); lv.ledOn = mLedOn; lv.ledOff = mLedOff; lv.ledFault = mLedFault;
+                breaker.switches[i] = lv;
+                var lt = Text3D("Rotulo_" + i, bx.transform, Vector3.zero, 0f, labels[i], 0.0028f, Color.white);
+                lt.transform.SetPositionAndRotation(PartCenter(sp) + new Vector3(-0.03f, -0.07f, 0f), Quaternion.Euler(0, 90f, 0));
+                if (i == 4) breaker.label06 = lt;
+            }
+            var disp = Text3D("Display_Carga", bx.transform, Vector3.zero, 0f, "", 0.0045f, new Color(0.4f, 1f, 0.5f));
+            disp.transform.SetPositionAndRotation(new Vector3(bxB.min.x - 0.004f, bxB.max.y + 0.08f, bxB.center.z), Quaternion.Euler(0, 90f, 0));
+            breaker.display = disp;
+            var fs = Box("Zocalo_Fusible", bx.transform, Vector3.zero, new Vector3(0.03f, 0.05f, 0.05f), mBlack, 1f);
+            fs.transform.position = new Vector3(bxB.min.x + 0.05f, bxB.min.y + 0.12f, bxB.center.z + 0.18f);
+            breaker.fuseSlot = fs.AddComponent<SocketSlot>();
+            breaker.fuseSlot.itemId = "fuse"; breaker.fuseSlot.missingEs = "F2 · fusible fundido"; breaker.fuseSlot.missingEn = "F2 · blown fuse";
+            breaker.fuseSlot.installEs = "Colocar fusible"; breaker.fuseSlot.installEn = "Install fuse";
+            var fv = Model("fuse", fs.transform, Vector3.zero, 0f, "Fusible_Instalado", false);
+            fv.transform.position = fs.transform.position + new Vector3(-0.02f, 0, 0); fv.transform.rotation = Quaternion.Euler(0, 90f, 90f);
+            breaker.fuseSlot.installedVisual = fv;
+            fuseNote = Doc("fuseNote", "note_fuse", null, new Vector3(eastIn - 0.004f, 1.45f, -3.2f), 0f, new Vector2(0.15f, 0.2f),
+                "Nota de papá", "Dad's note", "«El cuadro aguanta 7. Alarma 3 · Cámaras 2 · Cerraduras 2 · Luces 3. Si se funde F2, hay repuestos en la caja de herramientas. NUNCA dejes la alarma sin corriente.»",
+                "\"The panel holds 7. Alarm 3 · Cameras 2 · Locks 2 · Lights 3. If F2 blows, there are spares in the toolbox. NEVER leave the alarm without power.\"", g);
+            fuseNote.transform.rotation = Quaternion.Euler(0, 90f, 0); // pegada a la pared
+            var tbx = Put("toolbox", eastIn - 0.3f, -4.55f, -90f, 0f, "Caja_Herramientas", g);
+            var fz = Model("fuse", g, Vector3.zero, 0f, "Fusible_Repuesto");
+            PlaceByBounds(fz, WorldBounds(tbx).center, WorldBounds(tbx).min.y + 0.06f);
+            SingleBox(fz);
+            fuse = Item(fz, "fuse", "Fusible de repuesto", "Spare fuse", "Un fusible de cerámica. En la etiqueta, con la letra de papá: «F2 · cámaras».", "A ceramic fuse. Dad's handwriting on the label: \"F2 · cameras\".", true, "Fusible F2", "Fuse F2", 0.12f);
+            var lid = Part(tbx, "Lid");
+            if (lid)
+            {
+                var d = lid.gameObject.AddComponent<Drawer>();
+                d.id = "toolbox"; d.slide = lid; d.rotate = true; d.nounEs = "caja de herramientas"; d.nounEn = "toolbox";
+                d.openEuler = new Vector3(HingeSign(lid, Vector3.up, Vector3.right) * 105f, 0, 0);
+                d.contents = new[] { fuse };
+                fuse.available = false;
+            }
+        }
+    }
+}

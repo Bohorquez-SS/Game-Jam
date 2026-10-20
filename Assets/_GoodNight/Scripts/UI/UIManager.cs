@@ -70,17 +70,15 @@ namespace GNight
                 {
                     if (Inp.Esc()) top.OnEsc();
                     else if (top.CloseWithInteract && Inp.Interact()) Close(top);
-                    else if (top is PhonePanel && Inp.Phone()) Close(top);
                     else top.Tick();
                 }
             }
-            else if (playing && !PlayerController.CutsceneLock)
+            else if (playing && !PlayerController.CutsceneLock && !FocusSystem.Active && !InspectSystem.Active)
             {
-                if (Inp.Esc()) Open(Get<PausePanel>());
-                else if (Inp.Phone()) Open(Get<PhonePanel>());
+                if (Inp.Esc()) { if (Phone3D.IsOpen) Phone3D.I.Close(); else Open(Get<PausePanel>()); }
             }
 
-            bool locked = playing && stack.Count == 0;
+            bool locked = playing && stack.Count == 0 && !FocusSystem.Active;
             var want = locked ? CursorLockMode.Locked : CursorLockMode.None;
             if (Cursor.lockState != want) { Cursor.lockState = want; Cursor.visible = !locked; }
         }

@@ -24,7 +24,7 @@ namespace GNight
         public override void Tick()
         {
             if (t < 1.2f) return;
-            if (retry.Tick() || Inp.Enter()) Checkpoint.ReloadAt(Checkpoint.HasSave ? Checkpoint.Saved : Stage.Act1);
+            if (retry.Tick() || Inp.Enter()) Checkpoint.ReloadAt(Checkpoint.HasSave ? Checkpoint.Saved : Stage.C1_Noche);
             else if (menu.Tick()) Checkpoint.ReloadAt(Stage.None);
         }
     }

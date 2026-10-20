@@ -116,9 +116,11 @@ namespace GNight.EditorTools
                 var phoneRoot = Group("Telefono", fpGO.transform);
                 var ph = Model("fp_hands", phoneRoot, Vector3.zero, 0f, "Manos_Telefono", false);
                 foreach (Transform c in ph.transform) c.gameObject.SetActive(c.name == "PhoneHand" || c.name == "Phone" || c.name == "PhoneScreen");
-                ph.transform.localRotation = Quaternion.Euler(90f, 180f, 0);
+                ph.transform.localRotation = Quaternion.Euler(0, 0, 180f) * Quaternion.Euler(90f, 180f, 0); // brazo desde abajo, pantalla hacia la cámara
                 var scr = Part(ph, "PhoneScreen");
                 if (scr) ph.transform.localPosition -= phoneRoot.InverseTransformPoint(PartCenterOf(scr));
+                var phHand = Part(ph, "PhoneHand");
+                if (phHand) phHand.position += phoneRoot.TransformVector(new Vector3(0, -0.055f, 0.006f)); // dedos en el borde inferior, no sobre la pantalla
                 var anchor = Group("Pantalla_Anchor", phoneRoot, new Vector3(0, 0, -0.003f));
                 SetLayer(phoneRoot.gameObject, GNLayers.FP); NoShadows(phoneRoot.gameObject);
                 var phone3d = fpGO.AddComponent<Phone3D>();
@@ -128,6 +130,13 @@ namespace GNight.EditorTools
                 var ui = new GameObject("UI");
                 ui.AddComponent<UIManager>();
                 var hud = ui.AddComponent<HUDView>(); hud.vignetteTex = Tex("vignette"); hud.grainTex = Tex("grain"); hud.scanTex = Tex("scanlines");
+                var opaque = Shader.Find("GNight/UIOpaque");
+                if (opaque) { var wm = new Material(opaque) { name = "M_WorldView" }; AssetDatabase.DeleteAsset(MatDir + "/M_WorldView.mat"); AssetDatabase.CreateAsset(wm, MatDir + "/M_WorldView.mat"); hud.worldMaterial = wm; }
+                // cámara de fondo: limpia la pantalla (todas las demás renderizan a texturas)
+                var clearCam = new GameObject("Camara_Fondo").AddComponent<Camera>();
+                clearCam.clearFlags = CameraClearFlags.SolidColor; clearCam.backgroundColor = Color.black;
+                clearCam.cullingMask = 0; clearCam.depth = -100; clearCam.farClipPlane = 1f; clearCam.nearClipPlane = 0.5f;
+                Urp(clearCam, false);
                 ui.AddComponent<ConfirmPanel>();
                 ui.AddComponent<MenuPanel>();
                 ui.AddComponent<PausePanel>();
@@ -145,6 +154,7 @@ namespace GNight.EditorTools
                 sys.AddComponent<PhoneSystem>();
                 sys.AddComponent<JournalManager>();
                 sys.AddComponent<HorrorEventManager>();
+                sys.AddComponent<DebugJump>();
                 sys.AddComponent<FocusSystem>().mainCam = cam;
                 sys.AddComponent<InspectSystem>().fpCam = fpCam;
                 sys.AddComponent<AlarmSystem>();

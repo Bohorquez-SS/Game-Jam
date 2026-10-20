@@ -38,10 +38,21 @@ namespace GNight
         {
             lastW = Screen.width; lastH = Screen.height;
             if (rt != null) { fpCam.targetTexture = null; rt.Release(); Destroy(rt); }
-            rt = new RenderTexture(Mathf.Max(64, Screen.width), Mathf.Max(64, Screen.height), 24, RenderTextureFormat.ARGB32) { name = "FP_RT", antiAliasing = 2 };
+            rt = new RenderTexture(Mathf.Max(64, Screen.width), Mathf.Max(64, Screen.height), 24, RenderTextureFormat.ARGB32) { name = "FP_RT", antiAliasing = 1 };
             rt.Create();
+            ClearRT();
             fpCam.targetTexture = rt;
             if (HUDView.I) HUDView.I.SetFP(rt);
+        }
+
+        /// <summary>Limpia la capa en primera persona cada frame (algunos backends no la limpian si la cámara no dibuja nada).</summary>
+        void ClearRT()
+        {
+            if (rt == null) return;
+            var prev = RenderTexture.active;
+            RenderTexture.active = rt;
+            GL.Clear(true, true, new Color(0, 0, 0, 0));
+            RenderTexture.active = prev;
         }
 
         /// <summary>Animación breve de la mano hacia un punto del mundo (abrir, pulsar, tomar).</summary>
@@ -58,6 +69,7 @@ namespace GNight
         void LateUpdate()
         {
             if (Screen.width != lastW || Screen.height != lastH) Rebuild();
+            ClearRT();
             if (rightHand == null) return;
             bool flash = FlashlightController.I != null && FlashlightController.I.IsOn;
             bool hide = InspectSystem.Active || FocusSystem.Active || PlayerController.CutsceneLock || HidingSpot.Current != null;

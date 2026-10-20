@@ -56,6 +56,7 @@ namespace GNight
         /// <summary>Muerte: la entidad aparece frente a la cámara, se abalanza, grito, sacudida, negro y pantalla de muerte.</summary>
         public void Die(string quote)
         {
+            if (DebugAutoPlay.Active) { Debug.Log("[AUTOPLAY] (muerte ignorada) " + quote); return; }
             if (dead) return;
             dead = true;
             StartCoroutine(DieCo(quote));

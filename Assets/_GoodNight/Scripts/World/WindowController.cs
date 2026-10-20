@@ -40,7 +40,7 @@ namespace GNight
         void Apply()
         {
             sash.localPosition = closedPos + Vector3.up * openOffset * Mathf.SmoothStep(0, 1, t);
-            if (rain) rain.volume = Mathf.Lerp(rainClosed, rainOpen, t) * Settings.Sfx;
+            if (rain) rain.volume = Mathf.Lerp(0f, rainOpen * AudioManager.RainOpenScale, t) * Settings.Sfx;   // (18/10) sin lluvia constante: solo se oye, suave, con la ventana abierta
             if (curtains != null) foreach (var c in curtains) if (c) c.wind = t;
         }
     }

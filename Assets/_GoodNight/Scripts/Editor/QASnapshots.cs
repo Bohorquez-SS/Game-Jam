@@ -22,7 +22,7 @@ namespace GNight.EditorTools
             {
                 new Room("dormitorio", HouseBuilder.WestX, 0f, HouseBuilder.HallZ, HouseBuilder.BedN),
                 new Room("bano", HouseBuilder.BathX0, HouseBuilder.SecX0, HouseBuilder.HallZ, HouseBuilder.NorthZ),
-                new Room("secreta", HouseBuilder.SecX0, HouseBuilder.EastX, HouseBuilder.HallZ, HouseBuilder.Sec06N),
+                new Room("secreta", HouseBuilder.SecX0, HouseBuilder.Sec06E, HouseBuilder.HallZ, HouseBuilder.Sec06N),
                 new Room("pasilloO", HouseBuilder.WestX, 0.3f, -HouseBuilder.HallZ, HouseBuilder.HallZ),
                 new Room("pasilloE", 0.3f, HouseBuilder.EastX, -HouseBuilder.HallZ, HouseBuilder.HallZ),
                 new Room("sala", HouseBuilder.WestX, HouseBuilder.KitX0, HouseBuilder.SouthZ, -HouseBuilder.HallZ),

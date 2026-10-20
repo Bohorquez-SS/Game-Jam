@@ -24,6 +24,8 @@ namespace GNight
         [Header("Percepción")]
         public float fov = 110f, sight = 11f, sightFlashlightOff = 7f, hearRun = 9f, hearWalk = 3.2f, catchDistance = 0.95f;
         public bool telegraph = true;
+        [Header("Persistencia (18/10)")]
+        public float loseTime = 4f, searchTime = 10f;   // segundos sin verte antes de buscar · segundos buscando antes de volver a patrullar
 
         public AIState State { get; private set; } = AIState.Inactive;
         public int[] route;
@@ -160,7 +162,7 @@ namespace GNight
                     Chase(player, dist);
                     break;
                 case AIState.Search:
-                    if (!Follow(investigateSpeed)) { PlayAnim("LookAround"); if (stateT > 10f) SetState(route != null && route.Length > 0 ? AIState.Patrol : AIState.Return); else if (Random.value < 0.008f) GoTo(lastSeen + new Vector3(Random.Range(-2f, 2f), 0, Random.Range(-2f, 2f))); }
+                    if (!Follow(investigateSpeed)) { PlayAnim("LookAround"); if (stateT > searchTime) SetState(route != null && route.Length > 0 ? AIState.Patrol : AIState.Return); else if (Random.value < 0.008f) GoTo(lastSeen + new Vector3(Random.Range(-2f, 2f), 0, Random.Range(-2f, 2f))); }
                     else PlayAnim("Walk", 0.25f, 1.1f);
                     CheckHideSpots(player);
                     break;
@@ -225,7 +227,7 @@ namespace GNight
 
         void Chase(PlayerController p, float dist)
         {
-            if (!SeesPlayer && TimeSinceSeen > 4f) { SetState(AIState.Search); return; }
+            if (!SeesPlayer && TimeSinceSeen > loseTime) { SetState(AIState.Search); return; }
             detourT -= Time.deltaTime;
             if (SeesPlayer && dist < 7f && detourT <= 0f)
             {

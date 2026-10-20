@@ -88,6 +88,7 @@ namespace GNight
                 case Stage.C3_Persecucion: StartCoroutine(C3_Chase(true)); break;
                 case Stage.C4_Protocolo: StartCoroutine(C4_Start(true)); break;
                 case Stage.C5_Final: StartCoroutine(C5_Start(true)); break;
+                case Stage.C5_Decision: StartCoroutine(C5_DecisionStart()); break;
             }
         }
 
@@ -176,6 +177,12 @@ namespace GNight
             R.bolt.SetGuardianLock(true);
             lm.SetMood(Mood.Emergency);
             GameClock.Set(2, 13);
+            if (s == Stage.C5_Final) return;
+
+            // --- protocolo preparado (checkpoint antes de la decisión)
+            PowerPanel.I.SetSilently(true, true, true, false, false);
+            lm.SetEmergency(true);
+            GameClock.Set(2, 31);
         }
 
         // =====================================================================================
@@ -240,6 +247,7 @@ namespace GNight
                 case Stage.C3_Cintas: C3_Event(id); break;
                 case Stage.C4_Protocolo: C4_Event(id); break;
                 case Stage.C5_Final: C5_Event(id); break;
+                case Stage.C5_Decision: C5_Event(id); break;
             }
             if (id == "hide_caught" && E != null && E.gameObject.activeSelf) GameManager.I.Die(T("\"Te estaba esperando del otro lado de la puerta.\"", "\"It was waiting right outside the door.\""));
         }

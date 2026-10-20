@@ -46,14 +46,32 @@ namespace GNight
             if (GetComponent<AmbientDread>() == null) gameObject.AddComponent<AmbientDread>();
         }
 
-        public const float RainScale = 0.82f;
-        float proxTension;
+        /// <summary>(18/10, pedido del equipo) sin loop constante de lluvia: la lluvia VISUAL sigue; el audio 2D queda en 0.</summary>
+        public const float RainScale = 0f;
+        /// <summary>Lluvia suave solo a través de una ventana abierta.</summary>
+        public const float RainOpenScale = 0.4f;
+        float proxTension, chaseVol;
+        AudioSource chase;
 
         void Start()
         {
-            // lluvia de las ventanas (fuentes 3D con el clip rain_loop)
-            foreach (var a in FindObjectsByType<AudioSource>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-                if (a.clip != null && a.clip.name == "rain_loop" && (ambience == null || System.Array.IndexOf(ambience, a) < 0)) a.volume *= RainScale;
+            // capa de persecución (percusión + pulso grave, generada): entra rápido al perseguir, se apaga despacio al perderte
+            var clip = Resources.Load<AudioClip>("chase_loop");
+            if (clip != null)
+            {
+                chase = gameObject.AddComponent<AudioSource>();
+                chase.clip = clip; chase.loop = true; chase.spatialBlend = 0f; chase.volume = 0f; chase.playOnAwake = false; chase.Play();
+            }
+        }
+
+        void LateUpdate()
+        {
+            if (chase == null) return;
+            var e = EnemyAI.I;
+            bool hunting = e != null && e.gameObject.activeInHierarchy && (e.State == AIState.Chase || e.State == AIState.Notice);
+            float target = hunting ? 0.5f : (e != null && e.gameObject.activeInHierarchy && e.State == AIState.Search ? 0.18f : 0f);
+            chaseVol = Mathf.MoveTowards(chaseVol, target, Time.unscaledDeltaTime * (target > chaseVol ? 1.2f : 0.12f));
+            chase.volume = chaseVol * Settings.Sfx;
         }
 
         void Update()
@@ -69,7 +87,8 @@ namespace GNight
             if (e != null && pc != null && e.gameObject.activeInHierarchy && e.State != AIState.Inactive && e.State != AIState.Scripted)
                 prox = Mathf.Clamp01(1f - (Vector3.Distance(e.transform.position, pc.transform.position) - 1.5f) / 7f) * 0.5f;
             proxTension = Mathf.MoveTowards(proxTension, prox, dt * 0.25f);
-            if (tension) tension.volume = Mathf.MoveTowards(tension.volume, Mathf.Max(tensionTarget, proxTension) * Settings.Sfx, dt * 0.35f);
+            float tt = Mathf.Max(tensionTarget, proxTension) * (chaseVol > 0.3f ? 0.5f : 1f);   // no apilar dos pistas de tensión fuertes
+            if (tension) tension.volume = Mathf.MoveTowards(tension.volume, tt * Settings.Sfx, dt * 0.35f);
         }
 
         public void UI(AudioClip c, float v = 1f) { if (c) ui.PlayOneShot(c, v * Settings.Sfx); }

@@ -8,6 +8,7 @@ namespace GNight
     /// Herramientas de desarrollo. SOLO existen en el editor y en builds marcadas como "Development Build"
     /// (en la build normal para jugadores este código no se compila).
     ///   F1–F8  saltar al punto de control de cada tramo        F9  reiniciar el punto de control actual
+    ///   Shift+F1..F5  abrir alarma / cámaras / cuadro eléctrico / VHS / consola de aislamiento
     ///   F10    panel de depuración (capítulo, objetivo, eventos, puzles, puertas, entidad)
     ///   F11/F12 recorrido automático hasta el final A / B (DebugAutoPlay)
     /// </summary>
@@ -22,6 +23,16 @@ namespace GNight
 
         void Update()
         {
+            bool shift = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+            // Shift+F1..F5: abrir directamente una estación (alarma, cámaras, cuadro, VHS, consola) para probarla
+            if (shift)
+            {
+                var r = GameRefs.I;
+                FocusStation[] st = r == null ? null : new FocusStation[] { r.alarmKeypad, r.cameraDesk, r.breaker, r.vcr, r.isolation };
+                for (int i = 0; st != null && i < st.Length; i++)
+                    if (Input.GetKeyDown(keys[i]) && st[i] != null && FocusSystem.I != null && !FocusSystem.Active) FocusSystem.I.Enter(st[i]);
+                return;
+            }
             for (int i = 0; i < keys.Length; i++)
                 if (Input.GetKeyDown(keys[i])) { Debug.Log("[GOOD NIGHT] Salto de prueba a " + stages[i]); Checkpoint.ReloadAt(stages[i]); }
             if (Input.GetKeyDown(KeyCode.F9) && StoryManager.I != null && StoryManager.I.stage != Stage.None)

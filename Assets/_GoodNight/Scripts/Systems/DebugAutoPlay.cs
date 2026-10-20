@@ -116,8 +116,7 @@ namespace GNight
                 FocusSystem.I.Enter(R.vcr);
                 for (int i = 0; i < 3; i++) { R.vcr.Insert(); yield return W(17f); }
                 Log("Cintas vistas: " + R.vcr.WatchedCount);
-                foreach (var id in R.vcr.correctOrder)
-                    foreach (var t in R.vcr.tapes) if (t.id == id && t.box) { var b = t.box.GetComponent<TapeBox>(); if (b && b.Clicked != null) b.Clicked(); yield return W(0.5f); }
+                R.vcr.DebugSolve(); yield return W(0.5f);
                 Log("Orden C→A→B · reconstruida=" + R.vcr.Reconstructed);
                 yield return W(3f);
                 GameEvents.Raise("inspected:photo_family");

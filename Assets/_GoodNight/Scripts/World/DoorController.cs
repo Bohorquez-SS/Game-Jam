@@ -47,10 +47,21 @@ namespace GNight
             if (changed) GameEvents.Raise((open ? "door_opened:" : "door_closed:") + id);
         }
 
+        Collider[] cols; bool moving;
+
         void Update()
         {
             float target = isOpen ? 1 : 0;
-            if (!Mathf.Approximately(t, target)) { t = Mathf.MoveTowards(t, target, Time.deltaTime * speed); Apply(); }
+            bool m = !Mathf.Approximately(t, target);
+            if (m != moving) SetSolid(!m);   // mientras gira no empuja al jugador (antes lo lanzaba / atravesaba)
+            if (m) { t = Mathf.MoveTowards(t, target, Time.deltaTime * speed); Apply(); }
+        }
+
+        void SetSolid(bool solid)
+        {
+            moving = !solid;
+            if (cols == null) cols = GetComponentsInChildren<Collider>(true);
+            foreach (var c in cols) if (c != null) c.enabled = solid;
         }
 
         void Apply() { transform.localRotation = closedRot * Quaternion.Euler(0, openAngle * Mathf.SmoothStep(0, 1, t), 0); }

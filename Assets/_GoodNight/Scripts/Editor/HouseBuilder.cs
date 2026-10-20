@@ -469,7 +469,7 @@ namespace GNight.EditorTools
             var it = model.AddComponent<Inspectable>();
             it.id = id; it.titleEs = titleEs; it.titleEn = titleEn; it.textEs = textEs; it.textEn = textEn;
             it.collect = collect; it.invNameEs = invEs ?? titleEs; it.invNameEn = invEn ?? titleEn; it.targetSize = size;
-            it.verbEs = collect ? "Tomar" : "Examinar"; it.verbEn = collect ? "Take" : "Examine";
+            it.verbEs = collect ? "Recoger" : "Examinar"; it.verbEn = collect ? "Take" : "Examine";
             if (model.GetComponent<Collider>() == null)
             {
                 var b = WorldBounds(model);
@@ -479,6 +479,53 @@ namespace GNight.EditorTools
                 bc.size = new Vector3(Mathf.Max(0.04f, b.size.x / Mathf.Max(0.001f, ls.x)), Mathf.Max(0.04f, b.size.y / Mathf.Max(0.001f, ls.y)), Mathf.Max(0.04f, b.size.z / Mathf.Max(0.001f, ls.z)));
             }
             return it;
+        }
+
+        /// <summary>
+        /// Fusible de cartucho reconocible (18/10): cuerpo cerámico, casquillos de latón y banda roja "F2".
+        /// Eje largo en X local. Pivote en el centro de la base (apoyado).
+        /// </summary>
+        GameObject FuseVisual(Transform parent, string name, bool burnt)
+        {
+            var g = new GameObject(name); g.transform.SetParent(parent, false);
+            const float L = 0.11f, D = 0.034f;
+            var ceramic = Lit(burnt ? "M_FuseBurnt" : "M_FuseCeramic", null, burnt ? new Color(0.16f, 0.13f, 0.11f) : new Color(0.93f, 0.9f, 0.82f), 0.35f);
+            var brass = PaletteMat("Brass");
+            var band = burnt ? Lit("M_FuseBandBurnt", null, new Color(0.25f, 0.05f, 0.03f)) : Lit("M_FuseBand", null, new Color(0.95f, 0.22f, 0.08f), 0.3f);
+            Prim(PrimitiveType.Cylinder, "Cuerpo", g.transform, new Vector3(0, D * 0.5f, 0), new Vector3(D, L * 0.36f, D), ceramic, false, new Vector3(0, 0, 90f));
+            Prim(PrimitiveType.Cylinder, "Casquillo_A", g.transform, new Vector3(-L * 0.41f, D * 0.5f, 0), new Vector3(D * 1.12f, L * 0.09f, D * 1.12f), brass, false, new Vector3(0, 0, 90f));
+            Prim(PrimitiveType.Cylinder, "Casquillo_B", g.transform, new Vector3(L * 0.41f, D * 0.5f, 0), new Vector3(D * 1.12f, L * 0.09f, D * 1.12f), brass, false, new Vector3(0, 0, 90f));
+            Prim(PrimitiveType.Cylinder, "Banda", g.transform, new Vector3(0, D * 0.5f, 0), new Vector3(D * 1.04f, L * 0.1f, D * 1.04f), band, false, new Vector3(0, 0, 90f));
+            if (burnt) Prim(PrimitiveType.Sphere, "Hollin", g.transform, new Vector3(0.012f, D * 0.85f, 0), new Vector3(0.03f, 0.012f, 0.025f), Lit("M_Soot", null, new Color(0.03f, 0.03f, 0.03f)), false);
+            foreach (var r in g.GetComponentsInChildren<Renderer>()) r.shadowCastingMode = ShadowCastingMode.Off;
+            return g;
+        }
+
+        /// <summary>
+        /// Cinta VHS reconocible (18/10): carcasa negra 18,7 × 10,3 × 2,5 cm, ventanas de las bobinas y etiqueta grande
+        /// con la letra escrita a mano. La etiqueta mira hacia -Z local. Pivote en el centro.
+        /// </summary>
+        GameObject VhsVisual(Transform parent, string name, string letter, string labelText)
+        {
+            var g = new GameObject(name); g.transform.SetParent(parent, false);
+            var shell = Lit("M_VhsShell", null, new Color(0.035f, 0.035f, 0.04f), 0.25f);
+            var label = Lit("M_VhsLabel", null, new Color(0.93f, 0.9f, 0.78f), 0.05f);
+            var window = Lit("M_VhsWindow", null, new Color(0.18f, 0.12f, 0.08f), 0.6f);
+            Box("Carcasa", g.transform, Vector3.zero, new Vector3(0.187f, 0.103f, 0.025f), shell, 1f, false);
+            Box("Etiqueta", g.transform, new Vector3(0, 0.022f, -0.0128f), new Vector3(0.15f, 0.042f, 0.001f), label, 1f, false);
+            Box("Ventana_I", g.transform, new Vector3(-0.045f, -0.022f, -0.0128f), new Vector3(0.05f, 0.03f, 0.001f), window, 1f, false);
+            Box("Ventana_D", g.transform, new Vector3(0.045f, -0.022f, -0.0128f), new Vector3(0.05f, 0.03f, 0.001f), window, 1f, false);
+            var t = Text3D("Texto", g.transform, new Vector3(0, 0.022f, -0.0136f), 0f, letter + "  —  " + labelText, 0.0022f, new Color(0.08f, 0.08f, 0.25f));
+            NoShadow(t.gameObject);
+            foreach (var r in g.GetComponentsInChildren<Renderer>()) r.shadowCastingMode = ShadowCastingMode.Off;
+            return g;
+        }
+
+        /// <summary>Collider de interacción cómodo (más grande que el objeto) para cosas pequeñas.</summary>
+        static void GrabBox(GameObject g, Vector3 localSize, Vector3 localCenter = default)
+        {
+            RemoveColliders(g);
+            var bc = g.AddComponent<BoxCollider>(); bc.size = localSize; bc.center = localCenter;
         }
 
         /// <summary>Un único collider de caja (en la raíz) para objetos pequeños: evita que las piezas internas capten el rayo.</summary>
@@ -503,7 +550,75 @@ namespace GNight.EditorTools
             if (rotate) d.openEuler = new Vector3(0, HingeSign(part, front, Vector3.up) * amount, 0);
             else d.openOffset = part.parent != null ? part.parent.InverseTransformVector(front.normalized * amount) : front.normalized * amount;
             d.contents = contents;
+            if (!rotate) DrawerTray(part, front.normalized, amount, contents);
+            FrontGrab(part);
             return d;
+        }
+
+        /// <summary>Collider de caja que cubre TODO el frente (y el tirador) con 1 cm de margen: se abre apuntando a cualquier parte.</summary>
+        static void FrontGrab(Transform part)
+        {
+            var mfs = part.GetComponentsInChildren<MeshFilter>();
+            if (mfs.Length == 0) return;
+            bool has = false; Bounds lb = new Bounds();
+            foreach (var mf in mfs)
+            {
+                if (mf.sharedMesh == null) continue;
+                // solo el frente del FBX: ni la caja interior ni lo que hay DENTRO del cajón (cinta, recibo...).
+                // (si el collider envolvía la cinta, el rayo daba siempre en el cajón y no se podía recoger)
+                if (mf.GetComponentInParent<Inspectable>() != null) continue;
+                bool inTray = false; for (var p = mf.transform; p != null && p != part; p = p.parent) if (p.name == "Caja_Cajon") inTray = true;
+                if (inTray) continue;
+                var mb = mf.sharedMesh.bounds;
+                for (int i = 0; i < 8; i++)
+                {
+                    Vector3 c = mb.center + Vector3.Scale(mb.extents, new Vector3((i & 1) == 0 ? -1 : 1, (i & 2) == 0 ? -1 : 1, (i & 4) == 0 ? -1 : 1));
+                    Vector3 lp = part.InverseTransformPoint(mf.transform.TransformPoint(c));
+                    if (!has) { lb = new Bounds(lp, Vector3.zero); has = true; } else lb.Encapsulate(lp);
+                }
+            }
+            if (!has) return;
+            var ls = part.lossyScale;
+            var bc = part.gameObject.AddComponent<BoxCollider>();
+            bc.center = lb.center;
+            bc.size = lb.size + new Vector3(0.02f / Mathf.Max(0.001f, Mathf.Abs(ls.x)), 0.02f / Mathf.Max(0.001f, Mathf.Abs(ls.y)), 0.02f / Mathf.Max(0.001f, Mathf.Abs(ls.z)));
+        }
+
+        /// <summary>
+        /// Los FBX solo traen el frente del cajón: se le agrega una caja real (fondo, laterales y trasera) que se desliza
+        /// con él, y su contenido se coloca dentro. Cerrado queda oculto dentro del mueble.
+        /// </summary>
+        void DrawerTray(Transform part, Vector3 f, float amount, Inspectable[] contents)
+        {
+            var rends = part.GetComponentsInChildren<Renderer>();
+            if (rends.Length == 0) return;
+            Bounds pb = rends[0].bounds; foreach (var r in rends) pb.Encapsulate(r.bounds);
+            Vector3 side = Vector3.Cross(Vector3.up, f).normalized;
+            float width = Mathf.Abs(Vector3.Dot(pb.size, new Vector3(Mathf.Abs(side.x), 0, Mathf.Abs(side.z)))) - 0.035f;
+            float panelT = Mathf.Abs(Vector3.Dot(pb.size, new Vector3(Mathf.Abs(f.x), 0, Mathf.Abs(f.z))));
+            float h = Mathf.Max(0.05f, pb.size.y * 0.72f);
+            float depth = amount + 0.05f, t = 0.012f;
+            if (width < 0.05f) return;
+            var mat = rends[0].sharedMaterial != null ? rends[0].sharedMaterial : mWoodDark;
+            // ancla con rotación alineada al frente (Z local = hacia atrás del cajón)
+            var tray = new GameObject("Caja_Cajon").transform;
+            tray.position = new Vector3(pb.center.x, pb.min.y + 0.015f, pb.center.z) - f * (panelT * 0.5f);
+            tray.rotation = Quaternion.LookRotation(-f, Vector3.up);
+            Box("Fondo", tray, new Vector3(0, t * 0.5f, depth * 0.5f), new Vector3(width, t, depth), mat, 1f, false);
+            Box("Lateral_I", tray, new Vector3(-width * 0.5f + t * 0.5f, h * 0.5f, depth * 0.5f), new Vector3(t, h, depth), mat, 1f, false);
+            Box("Lateral_D", tray, new Vector3(width * 0.5f - t * 0.5f, h * 0.5f, depth * 0.5f), new Vector3(t, h, depth), mat, 1f, false);
+            Box("Trasera", tray, new Vector3(0, h * 0.5f, depth - t * 0.5f), new Vector3(width, h, t), mat, 1f, false);
+            foreach (var r in tray.GetComponentsInChildren<Renderer>()) r.shadowCastingMode = ShadowCastingMode.Off;
+            tray.SetParent(part, true);
+            // contenido apoyado en el fondo, en la mitad delantera (la que queda a la vista al abrir)
+            if (contents != null)
+                foreach (var c in contents)
+                {
+                    if (c == null) continue;
+                    var cb = WorldBounds(c.gameObject);
+                    Vector3 target = tray.position + tray.forward * Mathf.Min(depth * 0.45f, amount * 0.55f) + Vector3.up * (t + 0.002f);
+                    c.transform.position += new Vector3(target.x - cb.center.x, target.y - cb.min.y, target.z - cb.center.z);
+                }
         }
 
         /// <summary>+1 o -1: el sentido de giro (sobre 'axis' local) que mueve la pieza hacia 'front'.</summary>

@@ -17,6 +17,8 @@ namespace GNight
         public AudioClip sting, breaker, mechanism, lockClunk, drawer, knock, windowKnock, metalBang, shutter, spark, whisper, heartbeat, breath, breathClose,
                          staticBurst, steps1, steps2, steps3, heavyStep1, heavyStep2, crack, entityScream, hitLow, tensionRise, handleRattle, woodCreak,
                          plates, birds, carArrive, carDoor, vhsInsert, tapeHiss, tvStatic, doorCreak, doorClose, thunder;
+        [Header("Sustos y escenas (18/10)")]
+        public AudioClip water, scareHit, scareHit2, doorSlow, momOutside;
         [Header("Voces provisionales (reemplazables por grabaciones reales)")]
         public AudioClip voiceMom, voiceDad, voiceGuardian, voiceYou, voiceEntity;
         [Header("Fuentes")]

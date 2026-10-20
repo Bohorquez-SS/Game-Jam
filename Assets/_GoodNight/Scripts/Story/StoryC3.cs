@@ -17,6 +17,7 @@ namespace GNight
                 PlayerController.CutsceneLock = false;
             }
             GameClock.Set(1, 5);
+            tapeSearchT = 0f; tapeHintStep = 0;
             yield return Wait(2f);
             // el teléfono escribe solo
             P.Outgoing(PhoneSystem.Unknown, GameClock.Text, T("¿Quién eres?", "Who are you?"));
@@ -28,17 +29,19 @@ namespace GNight
             P.Receive(PhoneSystem.Unknown, T("Papá grabó todo. Hay tres cintas en la casa. Míralas en la tele de la sala.", "Dad recorded everything. There are three tapes in the house. Watch them on the living room TV."), true, -1f, false);
             O.Set(T("Encuentra las cintas de papá", "Find dad's tapes"),
                   T("Revisa los muebles: la cómoda de la sala, debajo de tu cama, el botiquín del baño. La videograbadora está bajo la tele.", "Search the furniture: the living room dresser, under your bed, the bathroom cabinet. The VCR is under the TV."),
-                  TapeCountText(), T("Mira las cintas en la videograbadora", "Watch the tapes on the VCR"), T("Ordénalas", "Put them in order"));
+                  TapeCountText(), T("Mira las cintas en la videograbadora (bajo la TV)", "Watch the tapes on the VCR (under the TV)"), T("Ordénalas y pulsa REPRODUCIR SECUENCIA", "Order them and press PLAY SEQUENCE"));
         }
 
         int TapesFound() { int n = 0; foreach (var id in new[] { "tape_a", "tape_b", "tape_c" }) if (Inventory.Has(id) || Has("got_" + id)) n++; return n; }
-        string TapeCountText() => T("Encuentra las cintas", "Find the tapes") + " (" + TapesFound() + "/3)";
+        string TapeCountText() => T("Cintas encontradas: ", "Tapes found: ") + TapesFound() + "/3";
+        float tapeSearchT; int tapeHintStep;
 
         void C3_Event(string id)
         {
             if (id.StartsWith("collected:tape_"))
             {
                 Set("got_" + id.Substring(10));
+                tapeSearchT = 0f;
                 O.SetItem(0, TapeCountText());
                 if (TapesFound() >= 3) O.Check(0);
                 if (TapesFound() == 2 && Set("kitchenEvent")) StartCoroutine(C3_KitchenEvent());
@@ -81,6 +84,7 @@ namespace GNight
 
         void C3_Tick()
         {
+            TapeHints();
             // la foto familiar cambia después de la reconstrucción
             if (Has("reconstructed") && Set("photoSwapped") && R.photoFamilyPicture != null && R.photoFamilyMissing != null)
             {
@@ -93,6 +97,31 @@ namespace GNight
                     R.photoFamily.textEn = "Mom and dad, smiling in front of the house. Between them there's an empty space... where I used to be.";
                     R.photoFamily.seen = false;
                 }
+            }
+        }
+
+        /// <summary>Pistas progresivas (voz interior) solo si el jugador lleva un rato sin encontrar las cintas.</summary>
+        void TapeHints()
+        {
+            if (FocusSystem.Active || InspectSystem.Active || TapesFound() >= 3) return;
+            tapeSearchT += Time.deltaTime;
+            bool needB = !Inventory.Has("tape_b") && !Has("got_tape_b");
+            bool needC = !Inventory.Has("tape_c") && !Has("got_tape_c");
+            bool needA = !Inventory.Has("tape_a") && !Has("got_tape_a");
+            // la cama: más escondida a propósito. Solo después de un buen rato.
+            if (needB && TapesFound() >= 2)
+            {
+                if (tapeHintStep == 0 && tapeSearchT > 50f) { tapeHintStep = 1; tapeSearchT = 0f; H.Say(You, T("Estoy seguro de que todavía falta una grabación.", "I'm sure there's still one recording missing."), 4f); }
+                else if (tapeHintStep == 1 && tapeSearchT > 45f) { tapeHintStep = 2; tapeSearchT = 0f; H.Say(You, T("Quizás haya algo escondido en mi habitación.", "Maybe there's something hidden in my room."), 4f); }
+                else if (tapeHintStep == 2 && (tapeSearchT > 45f || (tapeSearchT > 10f && RoomZone.At(R.player.transform.position) == "dormitorio")))
+                { tapeHintStep = 3; tapeSearchT = 0f; H.Say(You, T("¿Y si reviso debajo de la cama?", "What if I check under the bed?"), 4f); }
+                return;
+            }
+            if (tapeSearchT > 120f)
+            {
+                tapeSearchT = 0f;
+                if (needC) H.Say(You, T("Papá guardaba cosas raras en el baño... ¿detrás del espejo?", "Dad kept odd things in the bathroom... behind the mirror?"), 4f);
+                else if (needA) H.Say(You, T("La cómoda de la sala tiene más cajones que el del recibo.", "The living room dresser has more drawers than the receipt one."), 4f);
             }
         }
 

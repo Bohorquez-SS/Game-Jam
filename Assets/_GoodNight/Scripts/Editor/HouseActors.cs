@@ -131,14 +131,16 @@ namespace GNight.EditorTools
             var e = new GameObject("Entidad");
             e.transform.SetParent(chars, false);
             var cc = e.AddComponent<CharacterController>();
-            cc.height = 2.0f; cc.radius = 0.28f; cc.center = new Vector3(0, 1.0f, 0); cc.stepOffset = 0.25f;
+            // cápsula más baja y delgada que el modelo: con 2.0 m + piel chocaba con el dintel (2.05 m) y no pasaba por las puertas
+            cc.height = 1.7f; cc.radius = 0.22f; cc.center = new Vector3(0, 0.85f, 0); cc.stepOffset = 0.25f; cc.skinWidth = 0.04f;
             enemy = e.AddComponent<EnemyAI>();
             CharacterAnim ca, da;
             var cv = Character("entity", e.transform, Vector3.zero, 0f, "Visual_Entidad", true, out ca);
+            cv.transform.localScale *= 0.85f;  // ~1,89 m (18/10): algo más alta que una persona, cabe holgada por las puertas (2.05 m)
             var dv = Character("double", e.transform, Vector3.zero, 0f, "Visual_Doble", false, out da);
             dv.SetActive(false);
             enemy.creatureVisual = cv; enemy.doubleVisual = dv; enemy.creatureAnim = ca; enemy.doubleAnim = da;
-            enemy.head = Find(cv.transform, "Head") ?? Group("Cabeza", e.transform, new Vector3(0, 2.0f, 0.05f));
+            enemy.head = Find(cv.transform, "Head") ?? Group("Cabeza", e.transform, new Vector3(0, 1.82f, 0.05f));
             enemy.breath = Src("Respiracion", e.transform, new Vector3(0, 1.8f, 0), Clip("breath"), 0.6f, true, 1f, 1f, 9f);
             enemy.breath.playOnAwake = false;
             e.SetActive(false);
@@ -163,6 +165,13 @@ namespace GNight.EditorTools
             var mb = Character("double", chars, Vector3.zero, 0f, "Reflejo_Cuerpo", false, out ma);
             mirror.body = mb.transform; mirror.bodyAnim = ma;
             SetLayer(mb, GNLayers.Mirror);   // solo lo ve la cámara del espejo (también en el editor)
+            // figura del susto del lavabo: también solo en el reflejo
+            CharacterAnim sa;
+            var sg = Character("entity", chars, new Vector3(0.9f, 0, 2.0f), -90f, "Susto_Espejo", true, out sa);
+            sg.transform.localScale = Vector3.one * 0.85f;   // igual que la entidad (~1,89 m)
+            SetLayer(sg, GNLayers.Mirror);
+            mirror.scare = sg.transform; mirror.scareAnim = sa;
+            sg.SetActive(false);
 
             // --- puntos de escena
             hallFigure = Group("Figura_Pasillo", chars, new Vector3(4.15f, 0, 0f), -90f);
@@ -237,19 +246,22 @@ namespace GNight.EditorTools
                 new Vector3(0.9f,0,0f),      // 3 pasillo baño
                 new Vector3(2.05f,0,0f),     // 4 pasillo cocina
                 new Vector3(4.15f,0,0f),     // 5 fin del pasillo
-                new Vector3(1.25f,0,2.2f),   // 6 baño
+                new Vector3(1.0f,0,2.4f),    // 6 baño (lejos de la hoja abierta de la puerta)
                 new Vector3(-1.0f,0,-1.7f),  // 7 sala N
-                new Vector3(-1.9f,0,-4.3f),  // 8 sala S (puerta)
+                new Vector3(-1.25f,0,-4.45f), // 8 sala S (puerta), libre del sofá
                 new Vector3(0.3f,0,-2.0f),   // 9 sala E (paso a cocina)
                 new Vector3(1.6f,0,-2.0f),   // 10 cocina O
                 new Vector3(2.05f,0,-1.55f), // 11 cocina N
                 new Vector3(3.3f,0,-4.0f),   // 12 cocina S
                 new Vector3(3.55f,0,2.1f),   // 13 habitación 06
                 new Vector3(3.6f,0,0f),      // 14 pasillo frente al armario/06
+                new Vector3(DoorBedX,0,HallZ),   // 15 vano de la puerta del dormitorio (cruza por el centro)
+                new Vector3(DoorBathX,0,HallZ),  // 16 vano de la puerta del baño
+                new Vector3(DoorMetalX,0,HallZ), // 17 vano de la puerta 06
             };
             var nodes = new Transform[p.Length];
             for (int i = 0; i < p.Length; i++) nodes[i] = Group("N" + i, g.transform, p[i]);
-            int[,] e = { { 0, 1 }, { 1, 2 }, { 2, 3 }, { 3, 4 }, { 4, 14 }, { 14, 5 }, { 3, 6 }, { 2, 7 }, { 7, 8 }, { 7, 9 }, { 8, 9 }, { 9, 10 }, { 4, 11 }, { 10, 11 }, { 11, 12 }, { 10, 12 }, { 14, 13 } };
+            int[,] e = { { 0, 15 }, { 15, 1 }, { 1, 2 }, { 2, 3 }, { 3, 4 }, { 4, 14 }, { 14, 5 }, { 3, 16 }, { 16, 6 }, { 2, 7 }, { 7, 8 }, { 7, 9 }, { 8, 9 }, { 9, 10 }, { 4, 11 }, { 10, 11 }, { 11, 12 }, { 10, 12 }, { 14, 17 }, { 17, 13 } };
             int n = e.GetLength(0);
             graph = g.AddComponent<WaypointGraph>();
             graph.nodes = nodes; graph.edgeA = new int[n]; graph.edgeB = new int[n]; graph.edgeDoor = new DoorController[n]; graph.edgeShutter = new Shutter[n];
@@ -257,11 +269,12 @@ namespace GNight.EditorTools
             {
                 int a = e[i, 0], b = e[i, 1];
                 graph.edgeA[i] = a; graph.edgeB[i] = b;
-                if (a == 0 && b == 1) { graph.edgeDoor[i] = doorBedroom; graph.edgeShutter[i] = shuttersBedroom[0]; }
-                if (a == 3 && b == 6) graph.edgeDoor[i] = doorBathroom;
+                // la puerta se abre al llegar al vano (desde cualquiera de los dos lados)
+                if ((a == 0 && b == 15) || (a == 15 && b == 1)) { graph.edgeDoor[i] = doorBedroom; graph.edgeShutter[i] = shuttersBedroom[0]; }
+                if ((a == 3 && b == 16) || (a == 16 && b == 6)) graph.edgeDoor[i] = doorBathroom;
                 if (a == 4 && b == 11) { graph.edgeDoor[i] = doorKitchen; graph.edgeShutter[i] = shuttersKitchen[0]; }
                 if (a == 9 && b == 10) graph.edgeShutter[i] = shuttersKitchen[1];
-                if (a == 14 && b == 13) { graph.edgeDoor[i] = doorMetal; graph.edgeShutter[i] = shuttersSecret[0]; }
+                if ((a == 14 && b == 17) || (a == 17 && b == 13)) { graph.edgeDoor[i] = doorMetal; graph.edgeShutter[i] = shuttersSecret[0]; }
             }
             nodeBathroom = 6; nodeBedroom = 0; nodeHallEnd = 5;
             routeChase1 = new[] { 5, 14, 4, 3, 2, 7, 8, 9, 7, 2, 1, 0, 1, 2, 3, 6, 3, 4, 14 };

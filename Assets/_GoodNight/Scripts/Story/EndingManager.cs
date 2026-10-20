@@ -69,7 +69,7 @@ namespace GNight
             var r = GameRefs.I; var h = HUDView.I; var a = AudioManager.I; var e = r.enemy;
             a.PlayVoice(Voice.Guardian, null, 0.8f);
             h.Say("GUARDIÁN", T("Identidad secundaria seleccionada. Sellando la cocina.", "Secondary identity selected. Sealing the kitchen."), 3.5f);
-            yield return new WaitForSeconds(3.6f);
+            yield return VoiceBank.Wait(3.6f);
             a.At(a.metalBang, r.doorKitchen.transform.position, 1f);
             CameraFX.Shake(0.3f);
             yield return new WaitForSeconds(0.8f);
@@ -79,7 +79,7 @@ namespace GNight
             yield return new WaitForSeconds(1.2f);
             a.PlayVoice(Voice.Dad, null, 0.6f);
             h.Say(T("Papá (grabación)", "Dad (recording)"), T("Las copias conservan los recuerdos. Incluso recuerdan haber nacido.", "The copies keep the memories. They even remember being born."), 4.5f);
-            yield return new WaitForSeconds(4.8f);
+            yield return VoiceBank.Wait(4.8f);
             a.PlayVoice(Voice.Guardian, null, 0.8f);
             h.Say("GUARDIÁN", T("Identidad aislada. Salida autorizada.", "Identity isolated. Exit authorized."), 3.5f);
             yield return h.FadeTo(1f, 3f);
@@ -99,10 +99,10 @@ namespace GNight
             yield return new WaitForSeconds(1f);
             a.PlayVoice(Voice.Mom, r.carStop.position + Vector3.up * 1.5f, 0.8f);
             h.Say(T("Mamá", "Mom"), T("¡Cariño! ¿Qué haces afuera? Estás helado... y pálido.", "Honey! What are you doing outside? You're freezing... and so pale."), 4f);
-            yield return new WaitForSeconds(4.5f);
+            yield return VoiceBank.Wait(4.5f);
             a.PlayVoice(Voice.Mom, r.carStop.position + Vector3.up * 1.5f, 0.8f);
             h.Say(T("Mamá", "Mom"), T("Vamos adentro. Te hago el desayuno.", "Let's go inside. I'll make you breakfast."), 3.5f);
-            yield return new WaitForSeconds(4f);
+            yield return VoiceBank.Wait(4f);
             // corte: la cámara de la cocina. El que quedó encerrado golpea y grita.
             e.ShowAt(r.spawnKitchen.position, r.spawnKitchen.eulerAngles.y, "Attack", true);
             var kc = SecurityCameraSystem.I.ByZone("cocina");
@@ -117,17 +117,17 @@ namespace GNight
             yield return new WaitForSeconds(1.2f);
             a.PlayVoice(Voice.Mom, r.carStop.position + Vector3.up * 1.5f, 0.75f);
             h.Say(T("Mamá", "Mom"), T("¿Estás bien, cariño?", "Are you okay, sweetie?"), 3f);
-            yield return new WaitForSeconds(3.2f);
+            yield return VoiceBank.Wait(3.2f);
             h.Say(You, T("Sí, mamá.", "Yes, mom."), 2.2f);
-            yield return new WaitForSeconds(2.6f);
+            yield return VoiceBank.Wait(2.6f);
             // la sonrisa demasiado rígida: un instante de imagen "rota"
             if (PostFX.I) PostFX.I.Shock(0.35f);
             a.UI(a.staticBurst, 0.25f);
             h.Say(You, T("Ahora sí.", "Now I am."), 2.5f);
-            yield return new WaitForSeconds(2.8f);
+            yield return VoiceBank.Wait(2.8f);
             a.PlayVoice(Voice.Dad, null, 0.6f);
             h.Say(T("Papá (grabación)", "Dad (recording)"), T("El problema nunca fue que las copias olvidaran quiénes eran. El problema fue que aprendieron a recordar demasiado bien.", "The problem was never that the copies forgot who they were. The problem was that they learned to remember too well."), 6f);
-            yield return new WaitForSeconds(6.2f);
+            yield return VoiceBank.Wait(6.2f);
             yield return Final(T("<i>Encerraste al que llegó a las 22:10.</i>", "<i>You locked up the one who came home at 22:10.</i>"), T("FINAL A · BUENOS DÍAS", "ENDING A · GOOD MORNING"));
         }
 
@@ -137,7 +137,7 @@ namespace GNight
             for (int i = 0; i < 4; i++) { a.UI(a.knock, 0.6f); yield return new WaitForSeconds(0.3f); }
             a.PlayVoice(Voice.You, null, 0.8f);
             h.Say(T("Una voz igual a la tuya", "A voice just like yours"), T("¡Mamá! ¡No soy yo el que salió!", "Mom! I'm not the one who got out!"), 3f);
-            yield return new WaitForSeconds(3.3f);
+            yield return VoiceBank.Wait(3.3f);
             a.PlayVoice(Voice.Guardian, null, 0.8f);
             h.Say("GUARDIÁN", T("Protocolo completado. Sujeto original contenido. Copia liberada.", "Protocol complete. Original subject contained. Copy released."), 3.5f);
         }
@@ -151,9 +151,9 @@ namespace GNight
             var r = GameRefs.I; var h = HUDView.I; var a = AudioManager.I; var e = r.enemy;
             a.PlayVoice(Voice.Guardian, null, 0.8f);
             h.Say("GUARDIÁN", T("Autoaislamiento solicitado. Habitación 06: cámara de contención. ¿Confirma?", "Self-isolation requested. Room 06: containment chamber. Confirm?"), 4f);
-            yield return new WaitForSeconds(4.2f);
+            yield return VoiceBank.Wait(4.2f);
             h.Say(You, T("No puedo arriesgarme a soltar una copia. Confirmo.", "I can't risk letting a copy out. Confirmed."), 3f);
-            yield return new WaitForSeconds(1.5f);
+            yield return VoiceBank.Wait(1.5f);
             r.doorMetal.locked = false; r.doorMetal.speed = 1.2f;
             r.doorMetal.SetOpen(false);
             yield return new WaitForSeconds(0.9f);
@@ -187,13 +187,13 @@ namespace GNight
             yield return new WaitForSeconds(1.5f);
             a.PlayVoice(Voice.Guardian, null, 0.7f);
             h.Say("GUARDIÁN", T("Duplicado aislado. Ocupantes: uno. Gracias.", "Duplicate isolated. Occupants: one. Thank you."), 4f);
-            yield return new WaitForSeconds(4.5f);
+            yield return VoiceBank.Wait(4.5f);
             GameClock.Set(6, 0);
             LightingManager.I.SetMood(Mood.Dawn);
             yield return CarArrives();
             a.PlayVoice(Voice.Mom, null, 0.35f);
             h.Say(T("Mamá (afuera)", "Mom (outside)"), T("¡Cariño! ¿Qué haces despierto tan temprano?", "Honey! What are you doing up so early?"), 4f);
-            yield return new WaitForSeconds(4.5f);
+            yield return VoiceBank.Wait(4.5f);
             // el último mensaje
             PhoneSystem.I.Outgoing(PhoneSystem.Mama, GameClock.Text, T("Cuídalo, ma.", "Take care of him, mom."));
             a.UI(a.messagePop, 0.6f);
@@ -205,13 +205,13 @@ namespace GNight
             foreach (var m in r.secretMonitors) { m.overrideTexture = null; m.source = null; m.showStatic = false; m.message = T("ANÁLISIS COMPLETADO\n<size=16>IDENTIDAD ORIGINAL: NO CONCLUYENTE\nAMBOS SUJETOS PRESENTAN\nRECUERDOS AUTÉNTICOS</size>", "ANALYSIS COMPLETE\n<size=16>ORIGINAL IDENTITY: INCONCLUSIVE\nBOTH SUBJECTS SHOW\nAUTHENTIC MEMORIES</size>"); m.SetOn(true); }
             a.PlayVoice(Voice.Guardian, null, 0.8f);
             h.Say("GUARDIÁN", T("Análisis completado. Identidad original: no concluyente. Ambos sujetos presentan recuerdos auténticos.", "Analysis complete. Original identity: inconclusive. Both subjects show authentic memories."), 5f);
-            yield return new WaitForSeconds(5.3f);
+            yield return VoiceBank.Wait(5.3f);
             a.PlayVoice(Voice.Dad, null, 0.6f);
             h.Say(T("Papá (grabación)", "Dad (recording)"), T("Si ambos recuerdan haber vivido la misma vida... ¿cuál de los dos tiene derecho a conservarla?", "If both remember living the same life... which of them has the right to keep it?"), 5.5f);
-            yield return new WaitForSeconds(5.8f);
+            yield return VoiceBank.Wait(5.8f);
             a.PlayVoice(Voice.You, r.doorMetal.transform.position + Vector3.up * 1.5f, 0.5f);
             h.Say(T("Tu propia voz, del otro lado de la puerta", "Your own voice, behind the door"), T("Buenas noches.", "Good night."), 3f);
-            yield return new WaitForSeconds(3f);
+            yield return VoiceBank.Wait(3f);
             foreach (var m in r.secretMonitors) m.SetOn(false);
             yield return Final(T("<i>Buenas noches.</i>", "<i>Good night.</i>"), T("FINAL B · BUENAS NOCHES", "ENDING B · GOOD NIGHT"));
         }
@@ -235,7 +235,7 @@ namespace GNight
             yield return h.FadeTo(1f, 2.5f);
             yield return new WaitForSeconds(1f);
             h.Say("", lastLine, 4f);
-            yield return new WaitForSeconds(4.5f);
+            yield return VoiceBank.Wait(4.5f);
             yield return h.ShowTitle("GOOD NIGHT", 3f);
             int truths = StoryManager.I != null ? StoryManager.I.TruthCount : 0;
             yield return h.ShowTitle(endingName + "\n<size=60%>" + T("Verdades descubiertas: ", "Truths discovered: ") + truths + "/4</size>", 4f);

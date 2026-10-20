@@ -232,6 +232,8 @@ namespace GNight
         // ---------------- subtítulos
         public void Say(string speaker, string text, float duration)
         {
+            float vl = VoiceBank.TryPlay(text);                 // voz hablada, si existe para esta línea
+            if (vl > 0f) duration = Mathf.Max(duration, vl + 0.3f);
             if (subCo != null) StopCoroutine(subCo);
             subCo = StartCoroutine(SayCo(speaker, text, duration));
         }

@@ -27,7 +27,7 @@ namespace GNight
             P.Receive(PhoneSystem.Mama, MomIntro);
             yield return Wait(2.5f);
             H.Say(You, T("Turno de noche otra vez... Bueno. Cerrar todo y a dormir.", "Night shift again... Fine. Lock everything up and go to sleep."), 4f);
-            yield return Wait(1.2f);
+            yield return VoiceBank.Wait(1.2f);
             // levantarse de la silla
             yield return R.player.MoveCamera(R.poseDeskStand.position, R.poseDeskStand.eulerAngles.y, 0f, R.player.standEye, 0f, 1.0f);
             R.player.ReleaseEyeOverride();
@@ -83,28 +83,65 @@ namespace GNight
                 H.Say(You, T("Mejor no. La alarma ya está activada.", "Better not. The alarm is already armed."), 2.5f);
         }
 
+        /// <summary>
+        /// (18/10) Susto de la ÚLTIMA ventana que se cierre (cualquiera): un sonido afuera y, pegado al vidrio, el rostro del
+        /// Sujeto 0 que se abalanza contra el cristal. Una sola vez (bandera "windowKnock").
+        /// </summary>
         IEnumerator C1_WindowKnock(int lastIndex)
         {
-            yield return Wait(1.2f);
-            var src = R.windowOutside[lastIndex];
-            src.PlayOneShot(A.windowKnock, Settings.Sfx);
-            CameraFX.Shake(0.05f);
-            yield return Wait(1.4f);
-            H.Say(You, T("¿Hay alguien...? Es el viento. Tiene que ser el viento.", "Is someone...? It's the wind. It has to be the wind."), 3.5f);
             var win = R.windows[lastIndex].transform;
-            // un instante: algo pálido detrás del vidrio del dormitorio
-            if (lastIndex == 0 && R.windowPeek != null && R.player.AngleTo(win.position + Vector3.up * 1.4f) < 30f)
+            var src = R.windowOutside[lastIndex];
+            Vector3 eye = R.player.EyePosition;
+            Vector3 dir = win.position - eye; dir.y = 0; if (dir.sqrMagnitude < 0.01f) dir = R.player.transform.forward; dir.Normalize();
+            Vector3 glass = new Vector3(win.position.x, eye.y - 0.05f, win.position.z);
+            // esperar a que el jugador esté mirando la ventana (normalmente ya la mira: acaba de cerrarla)
+            for (float t = 0; t < 4f && R.player.AngleTo(glass) > 35f; t += Time.deltaTime) yield return null;
+            yield return Wait(0.35f);
+            src.PlayOneShot(A.whisper != null ? A.whisper : A.windowKnock, Settings.Sfx * 0.5f);   // algo afuera...
+            yield return Wait(0.55f);
+            var face = MakeWindowFace();
+            if (face != null)
             {
-                E.ShowAt(R.windowPeek.position, R.windowPeek.eulerAngles.y, "Peek");
-                E.LookAtPlayer(1f);
-                yield return Wait(0.5f);
-                LightingManager.I.Flicker("dormitorio", 0.4f);
-                yield return Wait(0.3f);
-                E.Despawn();
+                face.SetActive(true);
+                face.transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
+                A.UI(A.scareMirror != null ? A.scareMirror : A.sting, 0.8f);
+                src.PlayOneShot(A.windowKnock, Settings.Sfx);
+                CameraFX.Shake(0.35f); CameraFX.FovKick(-6f);
+                if (PostFX.I) PostFX.I.Shock(0.45f);
+                for (float t = 0; t < 0.75f; t += Time.deltaTime)
+                {
+                    float k = Ease.Out(Mathf.Clamp01(t / 0.3f));
+                    face.transform.position = glass + dir * Mathf.Lerp(0.45f, 0.05f, k) + Random.insideUnitSphere * 0.006f;
+                    face.transform.localScale = new Vector3(0.42f, 0.53f, 1f) * Mathf.Lerp(0.85f, 1.1f, k);
+                    yield return null;
+                }
+                Object.Destroy(face);
             }
-            yield return Wait(3.5f);
+            else src.PlayOneShot(A.windowKnock, Settings.Sfx);
+            LightingManager.I.Flicker(RoomZone.At(win.position) ?? "sala", 0.4f);
+            yield return Wait(1.2f);
+            H.Say(You, T("¿Qué... qué era eso? ¿Había alguien afuera?", "What... what was that? Was someone outside?"), 3.5f);
+            yield return Wait(4.5f);
             int other = (lastIndex + 1) % R.windowOutside.Length;
-            R.windowOutside[other].PlayOneShot(A.windowKnock, Settings.Sfx * 0.9f);
+            R.windowOutside[other].PlayOneShot(A.windowKnock, Settings.Sfx * 0.6f);
+        }
+
+        /// <summary>Quad con el rostro (Resources/scare_face), sin colisión, sin sombras.</summary>
+        GameObject MakeWindowFace()
+        {
+            Material mat = null;
+            if (R.mirror != null && R.mirror.scareFace != null) { var mr = R.mirror.scareFace.GetComponent<Renderer>(); if (mr) mat = mr.sharedMaterial; }   // mismo material del espejo (seguro en la build)
+            var tex = Resources.Load<Texture2D>("scare_face");
+            var sh = Shader.Find("Unlit/Transparent");
+            if (mat == null && (tex == null || sh == null)) return null;
+            var q = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            q.name = "Rostro_Ventana";
+            Object.Destroy(q.GetComponent<Collider>());
+            var r = q.GetComponent<Renderer>();
+            r.sharedMaterial = mat != null ? mat : new Material(sh) { mainTexture = tex };
+            r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            q.SetActive(false);
+            return q;
         }
 
         IEnumerator C1_AlarmObjective()
@@ -127,7 +164,7 @@ namespace GNight
             JournalManager.I.AddClue("occupants", T("La alarma contó 2 ocupantes. Estoy solo.", "The alarm counted 2 occupants. I'm alone."));
             yield return Wait(4f);
             H.Say(You, T("Seguro está mal calibrada. Papá decía que se equivocaba con los gatos.", "It must be miscalibrated. Dad used to say it got confused by cats."), 4f);
-            yield return Wait(3f);
+            yield return VoiceBank.Wait(3f);
             P.Receive(PhoneSystem.Mama, MomGoodnight);
             GameClock.Set(0, 4);
             Set("sleepReady");

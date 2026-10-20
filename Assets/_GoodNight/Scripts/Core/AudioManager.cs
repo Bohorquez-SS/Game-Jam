@@ -115,8 +115,26 @@ namespace GNight
         }
 
         /// <summary>Voz provisional (murmullo sintetizado); el texto va en los subtítulos.</summary>
+        // ---- voces habladas (VoiceBank): reemplazan al murmullo provisional de la misma línea
+        Vector3? lastVoicePos; float lastVoiceTime = -10f; AudioSource lastVoiceSrc, lineSrc3D;
+        public void PlayLine(AudioClip clip)
+        {
+            if (clip == null) return;
+            bool recent = Time.time - lastVoiceTime < 0.3f;
+            if (recent && lastVoiceSrc != null) lastVoiceSrc.Stop();           // fuera el murmullo
+            voice.Stop();
+            if (lineSrc3D != null) lineSrc3D.Stop();                           // nunca dos voces a la vez
+            if (recent && lastVoicePos.HasValue)
+            {
+                lineSrc3D = At(clip, lastVoicePos.Value, 1f, 16f, 1f);           // personaje en la casa: audio espacial
+                if (lineSrc3D) { lineSrc3D.minDistance = 2f; lineSrc3D.priority = 0; }
+            }
+            else { voice.clip = clip; voice.volume = 0.95f * Settings.Sfx; voice.pitch = 1f; voice.Play(); }
+        }
+
         public void PlayVoice(Voice v, Vector3? at = null, float volume = 0.7f)
         {
+            lastVoiceTime = Time.time; lastVoicePos = at; lastVoiceSrc = null;
             AudioClip c = null;
             switch (v)
             {
@@ -127,15 +145,16 @@ namespace GNight
                 case Voice.Entity: c = voiceEntity; break;
             }
             if (c == null) return;
-            if (at.HasValue) At(c, at.Value, volume, 14f);
-            else { voice.Stop(); voice.clip = c; voice.volume = volume * Settings.Sfx; voice.pitch = Random.Range(0.97f, 1.03f); voice.Play(); }
+            if (at.HasValue) lastVoiceSrc = At(c, at.Value, volume, 14f);
+            else { voice.Stop(); voice.clip = c; voice.volume = volume * Settings.Sfx; voice.pitch = Random.Range(0.97f, 1.03f); voice.Play(); lastVoiceSrc = voice; }
         }
 
         /// <summary>Misma frase, misma entonación (como una grabación): pitch fijo.</summary>
         public void PlayVoiceExact(Voice v, Vector3 at, float volume = 0.8f)
         {
             AudioClip c = v == Voice.Mom ? voiceMom : (v == Voice.You ? voiceYou : voiceEntity);
-            At(c, at, volume, 14f, 1f);
+            lastVoiceTime = Time.time; lastVoicePos = at;
+            lastVoiceSrc = At(c, at, volume, 14f, 1f);
         }
 
         public void SetAmbience(float scale) { ambienceScale = scale; }

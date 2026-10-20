@@ -140,10 +140,10 @@ namespace GNight
             A.SetTension(0.5f);
             yield return Wait(2f);
             H.Say(You, T("Ese... soy yo. En mi cuarto.", "That's... me. In my room."), 3f);
-            yield return Wait(4f);
+            yield return VoiceBank.Wait(4f);
             A.PlayVoice(Voice.You, R.spawnBedroomCam.position, 0.9f);
             H.Say(T("Tu propia voz", "Your own voice"), T("¿Hay alguien ahí afuera?", "Is someone out there?"), 3f);
-            yield return Wait(3.2f);
+            yield return VoiceBank.Wait(3.2f);
             tv.showStatic = true; tv.message = T("SEÑAL PERDIDA", "SIGNAL LOST");
             if (FocusSystem.Active) FocusSystem.I.Exit();
             SaveStage(Stage.C3_Persecucion);

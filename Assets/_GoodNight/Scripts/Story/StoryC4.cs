@@ -190,7 +190,7 @@ namespace GNight
             {
                 A.PlayVoice(Voice.Dad, R.recorderSlot.transform.position, 0.8f);
                 H.Say(dad, T(es[i], en[i]), 4.6f);
-                yield return Wait(5f);
+                yield return VoiceBank.Wait(5f);
             }
             Set("dadTapeDone");
             JournalManager.I.AddClue("dad", T("Papá: las copias aparecen dentro de una habitación sin cruzar puertas, y no saben que son copias.", "Dad: copies appear inside a room without crossing doors, and don't know they are copies."));
@@ -233,7 +233,7 @@ namespace GNight
             R.doppelBed.lookTarget = bedCam.transform.position; R.doppelBed.lookWeight = 1f;
             yield return Wait(1.2f);
             H.Say(You, T("Tiene mi cara. Me está mirando... a través de la cámara.", "It has my face. It's looking at me... through the camera."), 3.5f);
-            yield return Wait(3.5f);
+            yield return VoiceBank.Wait(3.5f);
 
             // GUARDIÁN
             foreach (var m in R.secretMonitors) { m.showStatic = true; m.message = "GUARDIÁN"; }

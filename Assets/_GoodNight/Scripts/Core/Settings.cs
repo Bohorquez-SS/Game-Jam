@@ -8,7 +8,7 @@ namespace GNight
         public static float Master = 0.9f, Sfx = 1f, Sensitivity = 2f, Brightness = 0.5f;
         public static bool Fullscreen = true;
         /// <summary>0 = bajo, 1 = medio, 2 = alto.</summary>
-        public static int Quality = 1;
+        public static int Quality = 2;   // Alto por defecto (resolución interna completa)
         /// <summary>0 = sin VHS, 1 = suave, 2 = intenso.</summary>
         public static int Vhs = 1;
         public static Lang Language = Lang.ES;
@@ -23,7 +23,7 @@ namespace GNight
             Sensitivity = PlayerPrefs.GetFloat("gn_sens", 2f);
             Brightness = PlayerPrefs.GetFloat("gn_bright", 0.5f);
             Fullscreen = PlayerPrefs.GetInt("gn_full", 1) == 1;
-            Quality = PlayerPrefs.GetInt("gn_quality", 1);
+            Quality = PlayerPrefs.GetInt("gn_quality_v3", 2);
             Vhs = PlayerPrefs.GetInt("gn_vhs", 1);
             Language = (Lang)PlayerPrefs.GetInt("gn_lang", 0);
             Apply();
@@ -36,7 +36,7 @@ namespace GNight
             PlayerPrefs.SetFloat("gn_sens", Sensitivity);
             PlayerPrefs.SetFloat("gn_bright", Brightness);
             PlayerPrefs.SetInt("gn_full", Fullscreen ? 1 : 0);
-            PlayerPrefs.SetInt("gn_quality", Quality);
+            PlayerPrefs.SetInt("gn_quality_v3", Quality);
             PlayerPrefs.SetInt("gn_vhs", Vhs);
             PlayerPrefs.SetInt("gn_lang", (int)Language);
             PlayerPrefs.Save();
@@ -51,7 +51,8 @@ namespace GNight
         }
 
         /// <summary>Altura en píxeles de la imagen interna según calidad (estética retro).</summary>
-        public static int RenderHeight => Quality == 0 ? 300 : (Quality == 1 ? 420 : 600);
+        /// <summary>Altura interna del render: proporcional a la pantalla (antes 300/420/600 fijos → demasiado pixelado).</summary>
+        public static int RenderHeight => UnityEngine.Mathf.RoundToInt(UnityEngine.Screen.height * (Quality == 0 ? 0.75f : 1f));
         public static string QualityName => Quality == 0 ? T("Bajo", "Low") : (Quality == 1 ? T("Medio", "Medium") : T("Alto", "High"));
         public static string VhsName => Vhs == 0 ? T("Desactivado", "Off") : (Vhs == 1 ? T("Suave", "Soft") : T("Intenso", "Strong"));
 

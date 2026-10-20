@@ -267,7 +267,7 @@ namespace GNight.EditorTools
             doorMetal = MakeDoor("Puerta_Metalica_06", "metal", "metal_door", new Vector3(DoorMetalX, 0, HallZ), 180f, 0.85f, 2.05f, "puerta metálica", "metal door", out leaf);
             doorMetal.locked = true;
             doorMetal.openClip = Clip("mechanism"); doorMetal.closeClip = Clip("metal_bang");
-            var sign = Text3D("Inscripcion", doorMetal.transform, new Vector3(0.42f, 1.55f, -0.06f), 0f, "06", 0.02f, new Color(0.85f, 0.15f, 0.1f));
+            var sign = Text3D("Inscripcion", doorMetal.transform, new Vector3(0.42f, 1.55f, -0.06f), 180f, "06", 0.02f, new Color(0.85f, 0.15f, 0.1f));
             NoShadow(sign.gameObject);
 
             shuttersBedroom[0] = MakeShutter("Persiana_Dormitorio", new Vector3(DoorBedX, 0, HallZ - 0.075f), 0.9f, 2.05f, true);
@@ -374,7 +374,7 @@ namespace GNight.EditorTools
             sec.lightSource.color = new Color(0.85f, 0.95f, 1f);
             Switch("dormitorio", new Vector3(-2.0f, 1.25f, HallZ + T + 0.01f), 180f);
             Switch("bano", new Vector3(0.3f, 1.25f, HallZ + T + 0.01f), 180f);
-            Switch("pasillo", new Vector3(-3.2f, 1.25f, -HallZ + T * 0.5f + 0.015f), 180f);
+            Switch("pasillo", new Vector3(-3.2f, 1.25f, -HallZ + T + 0.01f), 180f);   // antes quedaba dentro de la pared
             Switch("sala", new Vector3(-0.2f, 1.25f, -HallZ - T - 0.01f), 0f);
             Switch("cocina", new Vector3(2.75f, 1.25f, -HallZ - T - 0.01f), 0f);
             Emergency(new Vector3(-0.4f, H - 0.1f, 0f));

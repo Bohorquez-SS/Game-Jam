@@ -11,6 +11,7 @@ namespace GNight
         public Material onMat, offMat;
         public bool alwaysPowered;
         [HideInInspector] public bool forcedOn, forcedOff;
+        [HideInInspector] public bool userOff;   // apagada a mano por el jugador (Toggleable)
         [HideInInspector] public float flicker;
         float baseIntensity = -1f;
         public float BaseIntensity { get { if (baseIntensity < 0 && lightSource) baseIntensity = lightSource.intensity; return baseIntensity; } }
@@ -18,7 +19,7 @@ namespace GNight
         public void Apply(bool on, float moodScale)
         {
             if (lightSource == null) return;
-            bool final = (on || forcedOn) && !forcedOff;
+            bool final = (on || forcedOn) && !forcedOff && !userOff;
             if (flicker > 0f) final = final && Random.value > 0.45f;
             lightSource.enabled = final;
             lightSource.intensity = BaseIntensity * moodScale;

@@ -35,7 +35,7 @@ namespace GNight.EditorTools
             try
             {
                 EditorUtility.DisplayProgressBar("GOOD NIGHT", "Render pipeline y capas...", 0.05f);
-                string urpMsg; URPSetup.TryConfigure(out urpMsg);
+                string urpMsg; URPSetup.TryConfigure(out urpMsg); URPSetup.Tune();
                 Debug.Log("[GOOD NIGHT] " + urpMsg);
                 SetupLayers();
                 PlayerSettings.productName = "GOOD NIGHT";
@@ -106,25 +106,23 @@ namespace GNight.EditorTools
                 // mano derecha con la linterna
                 var rh = Group("Mano_Derecha", fpGO.transform);
                 var hands = Model("fp_hands", rh, Vector3.zero, 0f, "Manos_Linterna", false);
-                foreach (Transform c in hands.transform) c.gameObject.SetActive(c.name == "FlashHand" || c.name == "Flashlight");
-                hands.transform.localRotation = Quaternion.Euler(0, 180f, 0);
+                foreach (Transform c in Inner(hands)) c.gameObject.SetActive(c.name == "FlashHand" || c.name == "Flashlight");
+                // la linterna debe apuntar hacia delante (+Z de la cámara): se mide en lugar de suponer un giro fijo
+                var flm = Part(hands, "Flashlight"); var fhm = Part(hands, "FlashHand");
+                if (flm && fhm && rh.InverseTransformPoint(PartCenterOf(flm)).z < rh.InverseTransformPoint(PartCenterOf(fhm)).z)
+                    hands.transform.localRotation = Quaternion.Euler(0, 180f, 0);
                 var fh = Part(hands, "FlashHand");
                 if (fh) hands.transform.localPosition -= rh.InverseTransformPoint(fh.position);
                 rig.rightHand = rh; rig.flashlightModel = Part(hands, "Flashlight");
                 SetLayer(rh.gameObject, GNLayers.FP); NoShadows(rh.gameObject);
-                // teléfono en la mano izquierda (pantalla mirando a la cámara)
+                // teléfono: smartphone + mano izquierda que lo sostiene (fp_phone.fbx, Tools/Blender/phone_model.py).
+                // La orientación se calcula midiendo las piezas (pantalla, cuerpo, altavoz), así no depende de los ejes del FBX.
                 var phoneRoot = Group("Telefono", fpGO.transform);
-                var ph = Model("fp_hands", phoneRoot, Vector3.zero, 0f, "Manos_Telefono", false);
-                foreach (Transform c in ph.transform) c.gameObject.SetActive(c.name == "PhoneHand" || c.name == "Phone" || c.name == "PhoneScreen");
-                ph.transform.localRotation = Quaternion.Euler(0, 0, 180f) * Quaternion.Euler(90f, 180f, 0); // brazo desde abajo, pantalla hacia la cámara
-                var scr = Part(ph, "PhoneScreen");
-                if (scr) ph.transform.localPosition -= phoneRoot.InverseTransformPoint(PartCenterOf(scr));
-                var phHand = Part(ph, "PhoneHand");
-                if (phHand) phHand.position += phoneRoot.TransformVector(new Vector3(0, -0.055f, 0.006f)); // dedos en el borde inferior, no sobre la pantalla
-                var anchor = Group("Pantalla_Anchor", phoneRoot, new Vector3(0, 0, -0.003f));
+                float screenW;
+                var anchor = BuildPhoneModel(phoneRoot, out screenW);
                 SetLayer(phoneRoot.gameObject, GNLayers.FP); NoShadows(phoneRoot.gameObject);
                 var phone3d = fpGO.AddComponent<Phone3D>();
-                phone3d.phoneRoot = phoneRoot; phone3d.screenAnchor = anchor; phone3d.fpCam = fpCam; phone3d.wallpaper = Tex("phone_wallpaper");
+                phone3d.phoneRoot = phoneRoot; phone3d.screenAnchor = anchor; phone3d.fpCam = fpCam; phone3d.wallpaper = Tex("phone_wallpaper"); phone3d.screenWidth = screenW;
 
                 // ---------------- UI
                 var ui = new GameObject("UI");
@@ -211,6 +209,49 @@ namespace GNight.EditorTools
             finally { EditorUtility.ClearProgressBar(); }
         }
 
+        /// <summary>
+        /// Instancia fp_phone y lo orienta: pantalla hacia la cámara (-Z del raíz), parte superior hacia +Y, centro de la
+        /// pantalla en el origen. Devuelve el ancla de la UI (justo delante del cristal). Si falta el modelo usa fp_hands.
+        /// </summary>
+        static Transform BuildPhoneModel(Transform root, out float screenWidth)
+        {
+            screenWidth = 0.0665f;
+            var ph = Model("fp_phone", root, Vector3.zero, 0f, "Telefono_Modelo", false);
+            var scr = Part(ph, "PhoneScreen"); var body = Part(ph, "PhoneBody"); var spk = Part(ph, "Speaker");
+            if (scr == null || body == null || spk == null)
+            {
+                Debug.LogWarning("[GOOD NIGHT] fp_phone.fbx incompleto: se usa el teléfono antiguo de fp_hands.");
+                Object.DestroyImmediate(ph);
+                var old = Model("fp_hands", root, Vector3.zero, 0f, "Manos_Telefono", false);
+                foreach (Transform c in Inner(old)) c.gameObject.SetActive(c.name == "PhoneHand" || c.name == "Phone" || c.name == "PhoneScreen");
+                old.transform.localRotation = Quaternion.Euler(0, 0, 180f) * Quaternion.Euler(90f, 180f, 0);
+                var os = Part(old, "PhoneScreen");
+                if (os) old.transform.localPosition -= root.InverseTransformPoint(PartCenterOf(os));
+                screenWidth = 0.066f;
+                return Group("Pantalla_Anchor", root, new Vector3(0, 0, -0.003f));
+            }
+            System.Func<Transform, Vector3> C = t => root.InverseTransformPoint(PartCenterOf(t));
+            Vector3 n = (C(scr) - C(body));                    // normal de la pantalla (hacia el usuario)
+            Vector3 up = C(spk) - C(scr); up -= Vector3.Project(up, n);
+            if (n.sqrMagnitude < 1e-8f || up.sqrMagnitude < 1e-8f) Debug.LogWarning("[GOOD NIGHT] No se pudo medir la orientación del teléfono.");
+            var q = Quaternion.LookRotation(Vector3.back, Vector3.up) * Quaternion.Inverse(Quaternion.LookRotation(n.normalized, up.normalized));
+            ph.transform.localRotation = q * ph.transform.localRotation;
+            ph.transform.localPosition = q * ph.transform.localPosition;
+            ph.transform.localPosition -= C(scr);
+            // ancho real de la pantalla en el espacio del raíz (para escalar el Canvas)
+            var mf = scr.GetComponentInChildren<MeshFilter>();
+            if (mf != null && mf.sharedMesh != null)
+            {
+                float minX = 1e9f, maxX = -1e9f;
+                foreach (var v in mf.sharedMesh.vertices) { float x = root.InverseTransformPoint(mf.transform.TransformPoint(v)).x; minX = Mathf.Min(minX, x); maxX = Mathf.Max(maxX, x); }
+                if (maxX - minX > 0.02f) screenWidth = maxX - minX;
+            }
+            // la pantalla del modelo queda negra debajo de la UI
+            var sr = scr.GetComponentInChildren<Renderer>(); if (sr) sr.sharedMaterial = UnlitColor("M_PhoneGlass", new Color(0.01f, 0.012f, 0.016f));
+            Debug.Log("[GOOD NIGHT] Teléfono orientado. Ancho de pantalla " + screenWidth.ToString("F4") + " m.");
+            return Group("Pantalla_Anchor", root, new Vector3(0, 0, -0.0006f));
+        }
+
         static Vector3 PartCenterOf(Transform t)
         {
             var mf = t.GetComponentInChildren<MeshFilter>();
@@ -223,7 +264,8 @@ namespace GNight.EditorTools
             var d = c.GetUniversalAdditionalCameraData();
             if (d == null) return;
             d.renderPostProcessing = post;
-            d.antialiasing = post ? AntialiasingMode.FastApproximateAntialiasing : AntialiasingMode.None;
+            d.antialiasing = post ? AntialiasingMode.SubpixelMorphologicalAntiAliasing : AntialiasingMode.None;   // SMAA: bordes limpios sin desenfocar
+            if (post) d.antialiasingQuality = AntialiasingQuality.High;
             d.renderShadows = true;
         }
 

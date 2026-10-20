@@ -44,19 +44,53 @@ namespace GNight.EditorTools
             // escritorio contra la pared este, mirando al oeste
             float deskZ = 2.75f;
             var desk = AgainstWall("desk", g, new Vector3(eastIn, 0, deskZ), -90f, 0f, "Escritorio");
-            float deskTop = TopY(desk);
-            var mon = Put("crt_monitor", -0.42f, deskZ, -90f, deskTop, "Monitor_PC", g);
+            // altura REAL del tablero (rayo hacia abajo): el límite superior del modelo puede incluir molduras
+            float deskTop = SurfaceY(new Vector3(-0.5f, 1.2f, deskZ), TopY(desk));
+            var deskB = WorldBounds(desk);
+            float deskBack = deskB.max.x, deskFront = deskB.min.x;      // el escritorio mira al oeste (-X)
+            // monitor CRT más compacto (menos fondo) y pegado atrás, para que el teclado quepa delante
+            var mon = Model("crt_monitor", g, Vector3.zero, -90f, "Monitor_PC");
+            mon.transform.localScale = new Vector3(1f, 1f, 0.62f);
+            var mb0 = WorldBounds(mon);
+            PlaceByBounds(mon, new Vector3(deskBack - 0.03f - mb0.extents.x, 0, deskZ), deskTop);
             var scr = ScreenQuad(mon, -90f, new Vector2(0.29f, 0.22f), 0.55f);
+            scr.transform.SetParent(g, true);                               // fuera del monitor escalado (no deformar la pantalla)
+            scr.transform.localScale = new Vector3(0.29f, 0.22f, 1f);
             computer = scr.AddComponent<Computer>();
             computer.screen = scr.GetComponent<Renderer>(); computer.onMat = mScreenDesktop; computer.offMat = mMonitorOff;
             computer.glow = MakeLight("Brillo_Pantalla", g, LightType.Point, scr.transform.position + FrontDir(-90f) * 0.35f, new Color(0.55f, 0.7f, 1f), 0.9f, 2.6f, LightShadows.None);
             var monCol = mon.GetComponentsInChildren<Collider>(); foreach (var c in monCol) Object.DestroyImmediate(c);
             scr.AddComponent<BoxCollider>().size = new Vector3(1.1f, 1.1f, 0.2f);
-            Put("keyboard", -0.75f, deskZ, -90f, deskTop, "Teclado", g);
+            // teclado apoyado en el tablero, delante del monitor y dentro del borde
+            float monFront = WorldBounds(mon).min.x;
+            var kb = Model("keyboard", g, Vector3.zero, -90f, "Teclado");
+            var kbB = WorldBounds(kb);
+            float kbX = Mathf.Max(deskFront + 0.06f + kbB.extents.x, Mathf.Min(monFront - 0.05f - kbB.extents.x, (monFront + deskFront) * 0.5f));
+            PlaceByBounds(kb, new Vector3(kbX, 0, deskZ + 0.02f), deskTop);
+            // mouse + alfombrilla a la derecha del teclado (el jugador mira al este: su derecha es -Z)
+            float mz = deskZ - 0.36f;
+            var pad = Box("Alfombrilla_Mouse", g, new Vector3(kbX, deskTop + 0.002f, mz), new Vector3(0.21f, 0.004f, 0.25f), Lit("M_MousePad", null, new Color(0.06f, 0.07f, 0.1f)), 1f, false);
+            NoShadow(pad);
+            var mouse = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            mouse.name = "Mouse"; mouse.transform.SetParent(g, false);
+            Object.DestroyImmediate(mouse.GetComponent<Collider>());
+            mouse.transform.position = new Vector3(kbX + 0.01f, deskTop + 0.006f, mz);
+            mouse.transform.localScale = new Vector3(0.105f, 0.042f, 0.062f);      // largo hacia el jugador (X), bajo, angosto
+            mouse.GetComponent<Renderer>().sharedMaterial = mBeige;
+            var wheel = Box("Rueda", mouse.transform, new Vector3(0.3f, 0.45f, 0f), new Vector3(0.12f, 0.18f, 0.12f), mBlack, 1f, false);
+            var btn = Box("Separacion", mouse.transform, new Vector3(0.28f, 0.42f, 0f), new Vector3(0.36f, 0.12f, 0.025f), mBlack, 1f, false);
+            NoShadow(wheel); NoShadow(btn);
+            // cable hacia atrás
+            Box("Cable_Mouse", g, new Vector3((kbX + 0.06f + deskBack - 0.05f) * 0.5f, deskTop + 0.004f, mz + 0.01f),
+                new Vector3(Mathf.Max(0.05f, deskBack - 0.05f - (kbX + 0.06f)), 0.006f, 0.006f), mBlack, 1f, false);
             Put("pc_tower", -0.3f, deskZ + 0.42f, -90f, 0f, "Torre", g);
             var fan = Put("desk_fan", -0.3f, deskZ - 0.48f, -60f, deskTop, "Ventilador", g);
-            var blades = Part(fan, "Blades"); if (blades) { var sp = blades.gameObject.AddComponent<Spinner>(); sp.axis = Vector3.forward; sp.speed = 900f; }
-            Src("Zumbido_Ventilador", fan.transform, new Vector3(0, 0.2f, 0), Clip("fan_hum"), 0.18f, true, 1f, 0.5f, 4f);
+            var blades = Part(fan, "Blades"); Spinner fanSp = null;
+            if (blades) { fanSp = blades.gameObject.AddComponent<Spinner>(); fanSp.axis = Vector3.forward; fanSp.speed = 900f; }
+            var fanHum = Src("Zumbido_Ventilador", fan.transform, new Vector3(0, 0.2f, 0), Clip("fan_hum"), 0.18f, true, 1f, 0.5f, 4f);
+            var fanT = fan.AddComponent<Toggleable>(); fanT.nounEs = "ventilador"; fanT.nounEn = "fan";
+            fanT.spinners = fanSp != null ? new[] { fanSp } : new Spinner[0]; fanT.hum = fanHum;
+            if (fan.GetComponentInChildren<Collider>() == null) fan.AddComponent<BoxCollider>();
             var dl = Put("desk_lamp", -0.28f, deskZ + 0.45f, -110f, deskTop, "Lampara_Escritorio", g);
             var dlBulb = Part(dl, "Bulb");
             var dlLight = MakeLight("Luz_Lampara", dl.transform, LightType.Point, Vector3.zero, new Color(1f, 0.8f, 0.55f), 1.6f, 4.5f, LightShadows.Soft);
@@ -64,6 +98,7 @@ namespace GNight.EditorTools
             bedroomLamp = dlLight.gameObject.AddComponent<RoomLight>();
             bedroomLamp.zone = "lampara"; bedroomLamp.lightSource = dlLight; bedroomLamp.alwaysPowered = true;
             if (dlBulb) { bedroomLamp.bulb = dlBulb.GetComponentInChildren<Renderer>(); bedroomLamp.onMat = mBulbOn; bedroomLamp.offMat = mBulbOff; }
+            var dlT = dl.AddComponent<Toggleable>(); dlT.nounEs = "lámpara"; dlT.nounEn = "lamp"; dlT.lamp = bedroomLamp;
             roomLights.Add(bedroomLamp);
             var chair = Put("chair", -1.02f, deskZ, 90f, 0f, "Silla", g);
             var shelf = Model("bookshelf_wall", g, Vector3.zero, -90f, "Repisa");
@@ -81,7 +116,7 @@ namespace GNight.EditorTools
 
             // planta y póster
             Put("plant", -0.35f, northIn - 0.25f, 200f, 0f, "Planta", g);
-            Quad("Poster", g, new Vector3(-3.0f, 1.6f, HallZ + In + 0.005f), new Vector2(0.6f, 0.85f), 180f, Lit("M_Poster", "poster", Color.white));
+            Quad("Poster", g, new Vector3(-1.3f, 1.6f, HallZ + In + 0.005f), new Vector2(0.6f, 0.85f), 180f, Lit("M_Poster", "poster", Color.white));
         }
 
         /// <summary>Escondite en un mueble con puertas (armario, alacena, locker).</summary>
@@ -264,7 +299,7 @@ namespace GNight.EditorTools
             lockerHide = MakeHide(lk, "casillero", "locker", 0f, new[] { "Door" }, 1.5f);
             var cork = Model("cork_board", g, Vector3.zero, 90f, "Corcho_06");
             PlaceByBounds(cork, new Vector3(westIn + 0.025f, 0, 2.45f), 1.2f);
-            Text3D("Cartel", g, new Vector3(3.55f, 2.2f, northIn - 0.01f), 180f, "GUARDIÁN · NODO 06", 0.01f, new Color(0.8f, 0.2f, 0.15f));
+            Text3D("Cartel", g, new Vector3(3.55f, 2.2f, northIn - 0.01f), 0f, "GUARDIÁN · NODO 06", 0.01f, new Color(0.8f, 0.2f, 0.15f));
         }
 
         /// <summary>Altura de la superficie bajo un punto (raycast hacia abajo); 'fallback' si no hay nada.</summary>
@@ -305,6 +340,8 @@ namespace GNight.EditorTools
             var flL = MakeLight("Luz_Lampara_Pie", fl.transform, LightType.Point, Vector3.zero, new Color(1f, 0.78f, 0.5f), 1.4f, 5f, LightShadows.None);
             flL.transform.position = WorldBounds(fl).center + Vector3.up * 0.6f;
             var flr = flL.gameObject.AddComponent<RoomLight>(); flr.zone = "sala"; flr.lightSource = flL; roomLights.Add(flr);
+            var flBulb = Part(fl, "Bulb"); if (flBulb) { flr.bulb = flBulb.GetComponentInChildren<Renderer>(); flr.onMat = mBulbOn; flr.offMat = mBulbOff; }
+            var flT = fl.AddComponent<Toggleable>(); flT.nounEs = "lámpara de pie"; flT.nounEn = "floor lamp"; flT.lamp = flr;
             AgainstWall("tall_bookcase", g, new Vector3(westIn, 0, -1.55f), 90f, 0f, "Biblioteca");
             Put("plant", eastIn - 0.25f, southIn + 0.25f, 0f, 0f, "Planta_Sala", g);
             var wc = Model("wall_clock", g, Vector3.zero, 180f, "Reloj_Sala"); PlaceByBounds(wc, new Vector3(-3.0f, 0, northIn - 0.03f), 1.95f);
@@ -457,7 +494,7 @@ namespace GNight.EditorTools
 
             // linterna sobre la mesada
             var fl = Model("fp_hands", g, Vector3.zero, 0f, "Linterna_Mesada", false);
-            foreach (Transform c in fl.transform) c.gameObject.SetActive(c.name == "Flashlight");
+            foreach (Transform c in Inner(fl)) c.gameObject.SetActive(c.name == "Flashlight");
             var flPart = Part(fl, "Flashlight");
             if (flPart != null) { flPart.SetParent(g, true); Object.DestroyImmediate(fl); fl = flPart.gameObject; }
             fl.name = "Linterna_Mesada";
@@ -494,7 +531,7 @@ namespace GNight.EditorTools
             disp.transform.SetPositionAndRotation(new Vector3(bxB.min.x - 0.004f, bxB.max.y + 0.08f, bxB.center.z), Quaternion.Euler(0, 90f, 0));
             breaker.display = disp;
             var fs = Box("Zocalo_Fusible", bx.transform, Vector3.zero, new Vector3(0.03f, 0.05f, 0.05f), mBlack, 1f);
-            fs.transform.position = new Vector3(bxB.min.x + 0.05f, bxB.min.y + 0.12f, bxB.center.z + 0.18f);
+            fs.transform.position = new Vector3(bxB.max.x - 0.12f, bxB.min.y + 0.12f, bxB.center.z + 0.18f);   // medido desde la pared (la puerta ya no cuenta)
             breaker.fuseSlot = fs.AddComponent<SocketSlot>();
             breaker.fuseSlot.itemId = "fuse"; breaker.fuseSlot.missingEs = "F2 · fusible fundido"; breaker.fuseSlot.missingEn = "F2 · blown fuse";
             breaker.fuseSlot.installEs = "Colocar fusible"; breaker.fuseSlot.installEn = "Install fuse";

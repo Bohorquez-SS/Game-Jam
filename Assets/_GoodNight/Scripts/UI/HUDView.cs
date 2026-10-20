@@ -16,6 +16,9 @@ namespace GNight
 
         RawImage world, fp, grain, scan, vignette;
         Image fade, crosshair, toastBg, bannerBg, hintBg, inspectBg, flash;
+        Text objHead, hintNotice;
+        float hintNoticeT;
+        Image objBg;
         Text prompt, subtitle, title, objTitle, objItems, toastText, bannerText, hintText, focusHint, inspectTitle, inspectBody, inspectHint, chapter;
         CanvasGroup objGroup, inspectGroup;
         RectTransform toastRT;
@@ -42,14 +45,24 @@ namespace GNight
             prompt = UIKit.Txt("Prompt", ui.HUD, 26, TextAnchor.MiddleCenter, new Color(0.95f, 0.93f, 0.88f));
             UIKit.Center(prompt.rectTransform, new Vector2(0, -70), new Vector2(1100, 44));
 
-            // objetivo: aparece unos segundos al cambiar (siempre consultable en el teléfono)
+            // objetivo persistente (arriba a la izquierda): «OBJETIVO ACTUAL» + lista [ ] / [x]. Se resalta al cambiar.
             var ob = UIKit.Rect("Objective", ui.HUD);
-            UIKit.Place(ob, new Vector2(0, 1), new Vector2(0, 1), new Vector2(46, -40), new Vector2(700, 180));
+            UIKit.Place(ob, new Vector2(0, 1), new Vector2(0, 1), new Vector2(36, -30), new Vector2(640, 220));
             objGroup = ob.gameObject.AddComponent<CanvasGroup>(); objGroup.alpha = 0f;
-            objTitle = UIKit.Txt("Title", ob, 22, TextAnchor.UpperLeft, UIKit.Accent);
-            UIKit.Place(objTitle.rectTransform, new Vector2(0, 1), new Vector2(0, 1), Vector2.zero, new Vector2(700, 34));
-            objItems = UIKit.Txt("Items", ob, 20, TextAnchor.UpperLeft, new Color(0.9f, 0.9f, 0.9f));
-            UIKit.Place(objItems.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(2, -36), new Vector2(700, 140));
+            objBg = UIKit.Img("Bg", ob, new Color(0.02f, 0.025f, 0.035f, 0.55f));
+            var obr = objBg.rectTransform; obr.anchorMin = new Vector2(0, 1); obr.anchorMax = new Vector2(0, 1); obr.pivot = new Vector2(0, 1);
+            obr.anchoredPosition = new Vector2(-14, 10); obr.sizeDelta = new Vector2(640, 200);
+            objHead = UIKit.Txt("Head", ob, 17, TextAnchor.UpperLeft, new Color(1f, 1f, 1f, 0.6f));
+            UIKit.Place(objHead.rectTransform, new Vector2(0, 1), new Vector2(0, 1), Vector2.zero, new Vector2(620, 24));
+            objTitle = UIKit.Txt("Title", ob, 25, TextAnchor.UpperLeft, UIKit.Accent);
+            objTitle.horizontalOverflow = HorizontalWrapMode.Wrap; objTitle.verticalOverflow = VerticalWrapMode.Overflow;
+            UIKit.Place(objTitle.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, -24), new Vector2(610, 34));
+            objItems = UIKit.Txt("Items", ob, 22, TextAnchor.UpperLeft, new Color(0.93f, 0.93f, 0.93f));
+            objItems.horizontalOverflow = HorizontalWrapMode.Wrap; objItems.verticalOverflow = VerticalWrapMode.Overflow;
+            UIKit.Place(objItems.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(2, -62), new Vector2(608, 150));
+            hintNotice = UIKit.Txt("HintNotice", ui.HUD, 20, TextAnchor.UpperLeft, new Color(0.65f, 0.85f, 1f));
+            UIKit.Place(hintNotice.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(36, -250), new Vector2(640, 30));
+            hintNotice.text = "";
 
             chapter = UIKit.Txt("Chapter", ui.HUD, 18, TextAnchor.UpperRight, new Color(1, 1, 1, 0.35f));
             UIKit.Place(chapter.rectTransform, new Vector2(1, 1), new Vector2(1, 1), new Vector2(-40, -30), new Vector2(500, 30));
@@ -103,9 +116,24 @@ namespace GNight
             bool playing = GameManager.I != null && GameManager.I.Playing;
             bool free = playing && !UIManager.ModalOpen && !PlayerController.CutsceneLock && HidingSpot.Current == null && !InspectSystem.Active && !FocusSystem.Active;
             crosshair.enabled = free && !Phone3D.IsOpen;
-            prompt.enabled = playing && !UIManager.ModalOpen;
-            objAlpha = Mathf.MoveTowards(objAlpha, objCo != null && playing && !InspectSystem.Active ? 1f : 0f, Time.unscaledDeltaTime * 2f);
+            prompt.enabled = playing && !UIManager.ModalOpen && !Phone3D.IsOpen;
+            bool hasObj = !string.IsNullOrEmpty(objTitle.text);
+            bool objVisible = hasObj && playing && !UIManager.ModalOpen && !InspectSystem.Active && !FocusSystem.Active && !Phone3D.IsOpen && !PlayerController.CutsceneLock;
+            float objTarget = !objVisible ? 0f : (objCo != null ? 1f : 0.82f);
+            objAlpha = Mathf.MoveTowards(objAlpha, objTarget, Time.unscaledDeltaTime * 2.5f);
             objGroup.alpha = objAlpha;
+            if (hasObj)
+            {
+                // el fondo se ajusta al texto
+                float h = 62f + objItems.preferredHeight + 14f;
+                objBg.rectTransform.sizeDelta = new Vector2(640, h);
+                objBg.color = new Color(objCo != null ? 0.08f : 0.02f, objCo != null ? 0.07f : 0.025f, 0.035f, 0.55f);
+                var o = ObjectiveManager.I;
+                objHead.text = o != null && o.Investigation ? Settings.T("INVESTIGACIÓN", "INVESTIGATION") : Settings.T("OBJETIVO ACTUAL", "CURRENT OBJECTIVE");
+                hintNotice.rectTransform.anchoredPosition = new Vector2(36, -30 - h - 6);
+            }
+            if (hintNoticeT > 0f) hintNoticeT -= Time.unscaledDeltaTime;
+            hintNotice.enabled = objVisible && hintNoticeT > 0f;
             inspectGroup.alpha = Mathf.MoveTowards(inspectGroup.alpha, InspectSystem.Active ? 1f : 0f, Time.unscaledDeltaTime * 6f);
             chapter.text = playing && StoryManager.I != null ? StoryManager.I.ChapterLabel : "";
             int vhs = Settings.Vhs;
@@ -196,16 +224,19 @@ namespace GNight
         {
             objTitle.text = head ?? ""; objItems.text = items ?? "";
             if (string.IsNullOrEmpty(head)) { if (objCo != null) StopCoroutine(objCo); objCo = null; return; }
-            if (!announce && objCo == null) return;
+            if (!announce) return;
             if (objCo != null) StopCoroutine(objCo);
             objCo = StartCoroutine(ObjCo(announce));
         }
         IEnumerator ObjCo(bool announce)
         {
             if (announce && AudioManager.I) AudioManager.I.UI(AudioManager.I.check, 0.25f);
-            yield return new WaitForSeconds(7f);
+            yield return new WaitForSeconds(4f);   // resaltado; el objetivo sigue visible
             objCo = null;
         }
+
+        /// <summary>Aviso discreto bajo el objetivo (pista disponible en el teléfono).</summary>
+        public void HintNotice(string text) { hintNotice.text = text; hintNoticeT = 7f; }
 
         // ---------------- notificación de respaldo
         public void Toast(string header, string body)

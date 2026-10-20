@@ -20,15 +20,15 @@ namespace GNight
             Rebuild();
         }
 
-        int Target => Boost ? Mathf.Max(720, Settings.RenderHeight) : Settings.RenderHeight;
+        int Target => Boost ? Screen.height : Settings.RenderHeight;
 
         void Rebuild()
         {
             lastW = Screen.width; lastH = Screen.height; lastTarget = Target;
-            int h = Mathf.Min(Mathf.Max(200, lastTarget), Mathf.Max(200, Screen.height));
+            int h = Mathf.Clamp(lastTarget, 240, Mathf.Max(240, Screen.height));
             int w = Mathf.Max(1, Mathf.RoundToInt(h * (float)Screen.width / Mathf.Max(1, Screen.height)));
             Release();
-            rt = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32) { filterMode = Settings.Quality == 2 ? FilterMode.Bilinear : FilterMode.Point, name = "World_RT" };
+            rt = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32) { filterMode = FilterMode.Bilinear, name = "World_RT" };
             rt.Create();
             cam.targetTexture = rt;
             if (UIManager.I) UIManager.I.SetWorldTexture(rt);

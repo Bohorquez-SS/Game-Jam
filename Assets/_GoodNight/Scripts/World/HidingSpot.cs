@@ -54,7 +54,7 @@ namespace GNight
             if (AudioManager.I) AudioManager.I.At(AudioManager.I.woodCreak, transform.position, 0.45f);
             yield return Doors(0, 1, 0.35f);
             float py = pc.Pitch;
-            yield return pc.MoveCamera(inside.position, inside.eulerAngles.y, 4f, insideEye, 0f, 0.65f);
+            yield return pc.MoveCamera(inside.position, inside.eulerAngles.y, 4f, insideEye, 0f, 0.65f, false);   // sin colisión mientras está escondido
             Current = this; HiddenSince = Time.time; pc.LookLimit = lookLimit;
             if (AudioManager.I) AudioManager.I.At(AudioManager.I.doorClose, transform.position, 0.3f);
             yield return Doors(1, 0, 0.4f);
@@ -71,7 +71,12 @@ namespace GNight
             PlayerController.TransitionLock = true;
             if (AudioManager.I) AudioManager.I.At(AudioManager.I.woodCreak, transform.position, 0.5f);
             yield return Doors(0, 1, 0.3f);
-            if (danger) { PlayerController.TransitionLock = false; busy = false; Current = null; GameEvents.Raise("hide_caught"); yield break; }
+            if (danger)
+            {
+                // te saca del mueble (con colisión de nuevo) y la entidad te atrapa delante de la puerta
+                pc.SetPose(outside.position, outside.eulerAngles.y, 0f, -1f); pc.LookLimit = 0f; pc.ReleaseEyeOverride();
+                PlayerController.TransitionLock = false; busy = false; Current = null; GameEvents.Raise("hide_caught"); yield break;
+            }
             yield return pc.MoveCamera(outside.position, outside.eulerAngles.y, 0f, pc.standEye, 0f, 0.55f);
             pc.LookLimit = 0f; Current = null; pc.ReleaseEyeOverride();
             yield return Doors(1, 0, 0.35f);

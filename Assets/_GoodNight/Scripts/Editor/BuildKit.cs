@@ -42,6 +42,7 @@ namespace GNight.EditorTools
 
         static Material Save(Material m, string name)
         {
+            if (matCache == null) matCache = new Dictionary<string, Material>();
             string p = MatDir + "/" + name + ".mat";
             AssetDatabase.DeleteAsset(p);
             AssetDatabase.CreateAsset(m, p);
@@ -52,12 +53,20 @@ namespace GNight.EditorTools
         /// <summary>Material iluminado (URP/Lit o Standard según el pipeline activo).</summary>
         public static Material Lit(string name, string tex, Color color, float smooth = 0.05f, float metallic = 0f)
         {
+            if (matCache == null) matCache = new Dictionary<string, Material>();
             if (matCache.TryGetValue(name, out var cached)) return cached;
             var sh = URP ? Shader.Find("Universal Render Pipeline/Lit") : Shader.Find("Standard");
             var m = new Material(sh);
             var t = string.IsNullOrEmpty(tex) ? null : Tex(tex);
             if (m.HasProperty("_MainTex")) m.SetTexture("_MainTex", t);
             if (m.HasProperty("_BaseMap")) m.SetTexture("_BaseMap", t);
+            // relieve: si existe <tex>_n.png (generado por Tools/Textures/gen_textures_hd.py) se usa como mapa normal
+            var n = string.IsNullOrEmpty(tex) ? null : Tex(tex + "_n");
+            if (n != null && m.HasProperty("_BumpMap"))
+            {
+                m.SetTexture("_BumpMap", n); m.EnableKeyword("_NORMALMAP");
+                if (m.HasProperty("_BumpScale")) m.SetFloat("_BumpScale", 0.8f);
+            }
             if (m.HasProperty("_Color")) m.SetColor("_Color", color);
             if (m.HasProperty("_BaseColor")) m.SetColor("_BaseColor", color);
             if (m.HasProperty("_Glossiness")) m.SetFloat("_Glossiness", smooth);
@@ -70,6 +79,7 @@ namespace GNight.EditorTools
 
         public static Material Unlit(string name, string tex, bool transparent)
         {
+            if (matCache == null) matCache = new Dictionary<string, Material>();
             if (matCache.TryGetValue(name, out var cached)) return cached;
             var m = new Material(Shader.Find(transparent ? "Unlit/Transparent" : "Unlit/Texture"));
             m.mainTexture = Tex(tex);
@@ -78,6 +88,7 @@ namespace GNight.EditorTools
 
         public static Material UnlitColor(string name, Color c)
         {
+            if (matCache == null) matCache = new Dictionary<string, Material>();
             if (matCache.TryGetValue(name, out var cached)) return cached;
             var m = new Material(Shader.Find("Unlit/Color")) { color = c };
             return Save(m, name);
@@ -180,8 +191,20 @@ namespace GNight.EditorTools
             var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             tm.font = font; tm.fontSize = 64; tm.characterSize = charSize; tm.anchor = anchor;
             tm.alignment = TextAlignment.Center; tm.color = color; tm.text = text;
-            g.GetComponent<MeshRenderer>().sharedMaterial = font.material;
+            g.GetComponent<MeshRenderer>().sharedMaterial = TextMaterial(font);
+            g.AddComponent<Text3DDepth>();
             return tm;
+        }
+
+        /// <summary>Material de texto con prueba de profundidad (los rótulos ya no se ven a través de las paredes).</summary>
+        static Material TextMaterial(Font font)
+        {
+            if (matCache == null) matCache = new Dictionary<string, Material>();
+            if (matCache.TryGetValue("M_Text3D", out var cached)) return cached;
+            var sh = Shader.Find("GNight/Text3D");
+            if (sh == null) return font.material;
+            var m = new Material(sh) { mainTexture = font.material != null ? font.material.mainTexture : null };
+            return Save(m, "M_Text3D");
         }
 
         public static Light MakeLight(string name, Transform parent, LightType type, Vector3 pos, Color c, float intensity, float range, LightShadows shadows)

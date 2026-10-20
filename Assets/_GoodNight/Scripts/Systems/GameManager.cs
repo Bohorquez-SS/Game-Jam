@@ -107,6 +107,8 @@ namespace GNight
             }
             CameraFX.Shake(0.9f); CameraFX.FovKick(-14f);
             if (PostFX.I) PostFX.I.Shock(1f);
+            // (18/10) el ROSTRO del Sujeto 0 se abalanza a pantalla completa (la criatura); el doble humano muestra su propio cuerpo
+            if (e != null && !e.IsDouble) StartCoroutine(FaceLunge());
             if (HUDView.I) { HUDView.I.Flash(new Color(0.55f, 0.02f, 0.02f, 0.45f), 0.25f); HUDView.I.Say(Settings.T("Tú", "You"), Settings.T("¡No—!", "No—!"), 1.2f); }
             for (float t = 0; t < 0.75f; t += Time.deltaTime)
             {
@@ -123,6 +125,24 @@ namespace GNight
             if (AudioManager.I) AudioManager.I.SetTension(0f);
             yield return new WaitForSeconds(0.6f);
             UIManager.I.Get<DeathPanel>().Show(quote);
+        }
+
+        /// <summary>Rostro a pantalla completa (Resources/scare_face): aparece de golpe, crece hacia la cámara, tiembla y se corta a negro.</summary>
+        IEnumerator FaceLunge()
+        {
+            var tex = Resources.Load<Texture2D>("scare_face");
+            if (tex == null || UIManager.I == null) yield break;
+            var img = UIKit.Raw("Susto_Rostro", UIManager.I.Top); img.texture = tex;
+            var rt = img.rectTransform; UIKit.Center(rt, Vector2.zero, new Vector2(820, 1025));
+            for (float t = 0; t < 0.62f; t += Time.unscaledDeltaTime)
+            {
+                float k = Ease.Out(Mathf.Clamp01(t / 0.28f));
+                rt.localScale = Vector3.one * Mathf.Lerp(0.55f, 1.35f, k);
+                rt.anchoredPosition = Random.insideUnitCircle * 14f;
+                img.color = new Color(1f, 1f, 1f, t < 0.5f ? 1f : Mathf.Lerp(1f, 0f, (t - 0.5f) / 0.12f));
+                yield return null;
+            }
+            Destroy(rt.gameObject);
         }
 
         public static void Quit()

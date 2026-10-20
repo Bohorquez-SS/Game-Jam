@@ -276,32 +276,34 @@ namespace GNight.EditorTools
         // ================================================================= HABITACIÓN 06
         void Secret()
         {
-            // (18/10) Habitación 06 AMPLIADA hacia el norte (z 0.8 → 5.3) y ordenada en estaciones que se leen de un vistazo:
-            //   entrada (sur): casillero + archivador · oeste: MESA DE GRABACIONES (grabadora + cinta de carrete, con lámpara)
-            //   norte: escritorio con 3 monitores, plano y notas · este: PALANCA AUXILIAR (al fondo) y CONSOLA DE AISLAMIENTO (cerca de la entrada)
+            // (18/10) Habitación 06 AMPLIADA: x 2.5 → 6.6, z 0.8 → 5.3 (4,1 × 4,5 m). Centro libre y estaciones con cartel:
+            //   entrada (sur): casillero a la izquierda, archivador a la derecha · oeste: MESA DE GRABACIONES (grabadora + cinta, lámpara)
+            //   norte: escritorio con 3 monitores, plano y notas + silla · noreste: PALANCA AUXILIAR · este: CONSOLA DE AISLAMIENTO
             var g = Group("Habitacion_06", root);
-            float westIn = SecX0 + In, eastIn = EastX - In, northIn = Sec06N - In;
-            var desk = AgainstWall("secret_desk", g, new Vector3(3.55f, 0, northIn), 180f, 0f, "Escritorio_06");
-            float top = SurfaceY(new Vector3(3.55f, 2.5f, northIn - 0.3f), 0.76f);
-            float[] xs = { 2.97f, 3.55f, 4.13f };
+            float westIn = SecX0 + In, eastIn = Sec06E - In, northIn = Sec06N - In;
+            const float deskX = 4.4f;
+            var desk = AgainstWall("secret_desk", g, new Vector3(deskX, 0, northIn), 180f, 0f, "Escritorio_06");
+            float top = SurfaceY(new Vector3(deskX, 2.5f, northIn - 0.3f), 0.76f);
+            float[] xs = { deskX - 0.58f, deskX, deskX + 0.58f };
             for (int i = 0; i < 3; i++)
             {
                 var m = Put("crt_monitor", xs[i], northIn - 0.32f, 180f, top, "Monitor_06_" + i, g);
                 secretMonitors[i] = Monitor(m, 180f, new Vector2(0.29f, 0.22f), 0.55f, "secreta");
             }
-            Text3D("Cartel", g, new Vector3(3.55f, 2.2f, northIn - 0.01f), 0f, "GUARDIÁN · NODO 06", 0.01f, new Color(0.8f, 0.2f, 0.15f));
-            Put("cable_bundle", 3.2f, 3.6f, 20f, 0f, "Cables", g);
+            Text3D("Cartel", g, new Vector3(deskX, 2.2f, northIn - 0.01f), 0f, "GUARDIÁN · NODO 06", 0.01f, new Color(0.8f, 0.2f, 0.15f));
+            Put("chair", deskX, northIn - 1.05f, 0f, 0f, "Silla_06", g);
+            Put("cable_bundle", deskX + 0.9f, northIn - 0.9f, 20f, 0f, "Cables", g);
             // documentos sobre el escritorio
-            plan = Doc("plan", "blueprint", null, new Vector3(3.6f, top + 0.005f, northIn - 0.6f), 190f, new Vector2(0.42f, 0.3f),
+            plan = Doc("plan", "blueprint", null, new Vector3(deskX + 0.05f, top + 0.005f, northIn - 0.6f), 190f, new Vector2(0.42f, 0.3f),
                 "Plano de la casa", "House blueprint", "Plano de obra de 1998. La casa tiene SEIS habitaciones. En la versión que conozco solo hay cinco. La sexta está marcada en rojo: «06 — GUARDIÁN».",
                 "1998 building plan. The house has SIX rooms. The one I know only has five. The sixth is marked in red: \"06 — GUARDIAN\".", g);
             plan.clueId = "plan06"; plan.clueEs = "El plano original muestra una sexta habitación: la 06, sede de GUARDIÁN."; plan.clueEn = "The original plan shows a sixth room: 06, home of GUARDIAN.";
-            fatherNotes = Doc("fatherNotes", "note_father31", null, new Vector3(4.15f, top + 0.005f, northIn - 0.6f), 170f, new Vector2(0.21f, 0.28f),
-                "Notas de papá", "Dad's notes", "«Día 31. La casa no deja entrar a nadie: los HACE. Aparecen en una habitación sin cruzar ninguna puerta. Una copia no recuerda haber llegado; recuerda haber estado siempre. Si GUARDIÁN cuenta dos... uno de ellos no nació.»",
-                "\"Day 31. The house doesn't let anyone in: it MAKES them. They appear in a room without crossing any door. A copy doesn't remember arriving; it remembers having always been there. If GUARDIAN counts two... one of them was never born.\"", g);
+            fatherNotes = Doc("fatherNotes", "note_father31", null, new Vector3(deskX + 0.6f, top + 0.005f, northIn - 0.6f), 170f, new Vector2(0.21f, 0.28f),
+                "Notas de papá", "Dad's notes", "«Día 31. La casa no deja entrar a nadie: los HACE. Aparecen en una habitación sin cruzar ninguna puerta. Una copia no recuerda haber llegado; recuerda haber estado siempre. Si GUARDIÁN cuenta dos... uno de ellos no nació. (Día 4: el primero salió mal. S-0. Sin cara. Imita la voz de M. No le abras.)»",
+                "\"Day 31. The house doesn't let anyone in: it MAKES them. They appear in a room without crossing any door. A copy doesn't remember arriving; it remembers having always been there. If GUARDIAN counts two... one of them was never born. (Day 4: the first one went wrong. S-0. No face. It imitates M's voice. Don't open the door to it.)\"", g);
 
             // ---- MESA DE GRABACIONES (pared oeste): grabadora + cinta de carrete bien visible, con lámpara
-            const float tz = 3.6f, tD = 0.55f, tW = 1.1f, tH = 0.78f;
+            const float tz = 3.0f, tD = 0.6f, tW = 1.3f, tH = 0.78f;
             var mesa = Group("Mesa_Grabaciones", g, new Vector3(westIn + tD * 0.5f, 0, tz), 0f);
             Box("Tablero", mesa, new Vector3(0, tH - 0.02f, 0), new Vector3(tD, 0.04f, tW), mWoodDark, 1f, true);
             foreach (var lp in new[] { new Vector2(-1, -1), new Vector2(1, -1), new Vector2(-1, 1), new Vector2(1, 1) })
@@ -334,23 +336,24 @@ namespace GNight.EditorTools
             Box("Brazo_Lampara", g, new Vector3(westIn + 0.35f, tH + 0.3f, tz - 0.1f), new Vector3(0.02f, 0.6f, 0.02f), mMetal, 1f, false);
 
             // ---- archivador y corcho (decorado), cerca de la entrada
-            AgainstWall("filing_cabinet", g, new Vector3(westIn, 0, 1.75f), 90f, 0f, "Archivador");
+            AgainstWall("filing_cabinet", g, new Vector3(5.0f, 0, HallZ + In), 0f, 0f, "Archivador");
+            AgainstWall("filing_cabinet", g, new Vector3(5.55f, 0, HallZ + In), 0f, 0f, "Archivador_2");
             var cork = Model("cork_board", g, Vector3.zero, 90f, "Corcho_06");
-            PlaceByBounds(cork, new Vector3(westIn + 0.025f, 0, 2.6f), 1.2f);
+            PlaceByBounds(cork, new Vector3(westIn + 0.025f, 0, 4.4f), 1.2f);
 
             // ---- PALANCA DE ENERGÍA AUXILIAR (pared este, al fondo, junto a los monitores) con piloto rojo y cartel
-            var lev = AgainstWall("generator_lever", g, new Vector3(eastIn, 0, 4.35f), -90f, 1.05f, "Palanca_Auxiliar");
+            var lev = AgainstWall("generator_lever", g, new Vector3(eastIn, 0, 4.5f), -90f, 1.05f, "Palanca_Auxiliar");
             SingleBox(lev);
             auxLever = lev.AddComponent<StoryInteractable>(); auxLever.eventId = "aux_lever"; auxLever.available = false; auxLever.once = true;
             auxLever.promptEs = "Bajar la palanca: ENERGÍA AUXILIAR"; auxLever.promptEn = "Pull the lever: AUX POWER";
-            Text3D("Cartel_Auxiliar", g, new Vector3(eastIn - 0.012f, 1.85f, 4.35f), 90f, "ENERGÍA AUXILIAR", 0.006f, new Color(1f, 0.35f, 0.25f));
-            Box("Piloto", g, new Vector3(eastIn - 0.01f, 1.68f, 4.35f), new Vector3(0.02f, 0.04f, 0.04f), mLedFault, 1f, false);
+            Text3D("Cartel_Auxiliar", g, new Vector3(eastIn - 0.012f, 1.85f, 4.5f), 90f, "ENERGÍA AUXILIAR", 0.006f, new Color(1f, 0.35f, 0.25f));
+            Box("Piloto", g, new Vector3(eastIn - 0.01f, 1.68f, 4.5f), new Vector3(0.02f, 0.04f, 0.04f), mLedFault, 1f, false);
 
             // ---- CONSOLA DE AISLAMIENTO (pared este, cerca de la entrada)
-            var con = AgainstWall("isolation_console", g, new Vector3(eastIn, 0, 2.5f), -90f, 0f, "Consola_Aislamiento");
+            var con = AgainstWall("isolation_console", g, new Vector3(eastIn, 0, 2.6f), -90f, 0f, "Consola_Aislamiento");
             isolation = con.AddComponent<IsolationStation>();
             isolation.stationId = "isolation"; isolation.promptEs = "Usar consola de aislamiento"; isolation.promptEn = "Use isolation console";
-            isolation.view = View("Vista_Aislamiento", new Vector3(3.55f, 1.5f, 2.5f), WorldBounds(con).center + Vector3.up * 0.25f);
+            isolation.view = View("Vista_Aislamiento", new Vector3(eastIn - 1.25f, 1.5f, 2.6f), WorldBounds(con).center + Vector3.up * 0.25f);
             string[] btn = { "Btn_0", "Btn_1", "Btn_2" };
             string[] lab = { "AISLAR\nCOCINA", "AISLAR\nDORMITORIO", "AISLAR\n06" };
             PushButton[] pbs = new PushButton[3];
@@ -371,7 +374,7 @@ namespace GNight.EditorTools
             scrT.transform.position = new Vector3(cbb.center.x - 0.05f, cbb.max.y + 0.02f, cbb.center.z - 0.38f);
             scrT.transform.rotation = Quaternion.Euler(60f, -90f, 0);
             isolation.screen = scrT;
-            Text3D("Cartel_Aislamiento", g, new Vector3(eastIn - 0.012f, 1.85f, 2.5f), 90f, "AISLAMIENTO", 0.006f, new Color(0.55f, 1f, 0.6f));
+            Text3D("Cartel_Aislamiento", g, new Vector3(eastIn - 0.012f, 1.85f, 2.6f), 90f, "AISLAMIENTO", 0.006f, new Color(0.55f, 1f, 0.6f));
             isolationDoc = Doc("isolationDoc", "note_isolation", null, new Vector3(cbb.center.x - 0.1f, cbb.max.y + 0.004f, cbb.center.z + 0.3f), -80f, new Vector2(0.21f, 0.28f),
                 "Manual GUARDIÁN", "GUARDIAN manual", "«Aislamiento: sella una zona. Lo que queda dentro no sale.\n· Un sensor que parpadea a ritmo fijo es un ECO.\n· Una cámara con REC y una hora vieja está CONGELADA.\n· Aísle solo lo que confirmen un sensor estable y una cámara en DIRECTO.\n· Requiere ALARMA + CÁMARAS + CERRADURAS.»",
                 "\"Isolation: seals a zone. Whatever stays inside doesn't come out.\n· A sensor blinking at a steady rhythm is an ECHO.\n· A camera showing REC and an old time is FROZEN.\n· Only isolate what a steady sensor AND a LIVE camera confirm.\n· Requires ALARM + CAMERAS + LOCKS.\"", g);

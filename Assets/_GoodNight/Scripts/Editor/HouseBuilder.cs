@@ -21,6 +21,8 @@ namespace GNight.EditorTools
         public const float BathX0 = 0f, SecX0 = 2.5f, KitX0 = 1f;
         /// <summary>Límite norte de la habitación 06 (ampliada el 18/10, alineada con el dormitorio).</summary>
         public const float Sec06N = BedN;
+        /// <summary>Límite este de la habitación 06 (ampliada hacia el este el 18/10).</summary>
+        public const float Sec06E = 6.6f;
         public const float DoorBedX = -2.6f, DoorBathX = 0.9f, DoorMetalX = 3.6f, DoorKitX = 2.05f, ArchX = -1.0f, FrontX = -2.15f, KitPassZ = -2.0f;
 
         // ------------------------------------------------------------------ resultado (para GameRefs / sistemas)
@@ -139,7 +141,7 @@ namespace GNight.EditorTools
                     n = new[] { Win(-1.6f) }, s = new[] { Door(DoorBedX) }, w = none, e = none },
                 new RoomDef { id = "bano", x0 = BathX0, x1 = SecX0, z0 = HallZ, z1 = NorthZ, wall = mWallBath, floor = mBathFloor, ceil = mCeiling,
                     n = new[] { Win(1.8f, 0.6f, 1.5f, 2.0f) }, s = new[] { Door(DoorBathX, 0.85f) }, w = none, e = none },
-                new RoomDef { id = "secreta", x0 = SecX0, x1 = EastX, z0 = HallZ, z1 = Sec06N, wall = mConcrete, floor = mConcrete, ceil = mConcrete,
+                new RoomDef { id = "secreta", x0 = SecX0, x1 = Sec06E, z0 = HallZ, z1 = Sec06N, wall = mConcrete, floor = mConcrete, ceil = mConcrete,
                     n = none, s = new[] { Door(DoorMetalX, 0.85f) }, w = none, e = none },
                 new RoomDef { id = "pasillo", x0 = WestX, x1 = EastX, z0 = -HallZ, z1 = HallZ, wall = mWallHall, floor = mWoodFloor, ceil = mCeiling,
                     n = new[] { Door(DoorBedX), Door(DoorBathX, 0.85f), Door(DoorMetalX, 0.85f) }, s = new[] { Door(ArchX, 1.3f, 2.2f), Door(DoorKitX) }, w = none, e = none },
@@ -170,16 +172,18 @@ namespace GNight.EditorTools
             var ext = Group("Fachada", shell);
             float o = T * 0.5f;
             WallX(ext, "Fach_S", SouthZ - o, WestX - T, EastX + T, mSiding, 1f, Door(FrontX, 0.95f, 2.1f), Win(3.2f, 1.2f, 1.2f, 2.1f));
-            WallZ(ext, "Fach_E", EastX + o, SouthZ - T, Sec06N + T, mSiding, 1f);
+            WallZ(ext, "Fach_E", EastX + o, SouthZ - T, HallZ + T, mSiding, 1f);
+            WallX(ext, "Fach_06_S", HallZ - o, EastX, Sec06E + T, mSiding, 1f);
+            WallZ(ext, "Fach_06_E", Sec06E + o, HallZ - T, Sec06N + T, mSiding, 1f);
             WallX(ext, "Fach_NE", NorthZ + o, 0f, SecX0 + T, mSiding, 1f, Win(1.8f, 0.6f, 1.5f, 2.0f));
             WallZ(ext, "Fach_06_O", SecX0 - o, NorthZ, Sec06N + T, mSiding, 1f);
-            WallX(ext, "Fach_06_N", Sec06N + o, SecX0 - T, EastX + T, mSiding, 1f);
+            WallX(ext, "Fach_06_N", Sec06N + o, SecX0 - T, Sec06E + T, mSiding, 1f);
             WallZ(ext, "Fach_Escalon", 0f + o, NorthZ, BedN + T, mSiding, 1f);
             WallX(ext, "Fach_N", BedN + o, WestX - T, 0f + T, mSiding, 1f, Win(-1.6f));
             WallZ(ext, "Fach_O", WestX - o, SouthZ - T, BedN + T, mSiding, 1f, Win(-3.0f));
             BoxMM("Techo_Ext_A", ext, new Vector3(WestX - 0.3f, H + 0.1f, SouthZ - 0.3f), new Vector3(EastX + 0.3f, H + 0.25f, NorthZ + 0.3f), mRoof, 2f, false);
             BoxMM("Techo_Ext_B", ext, new Vector3(WestX - 0.3f, H + 0.1f, NorthZ + 0.3f), new Vector3(0.3f, H + 0.25f, BedN + 0.3f), mRoof, 2f, false);
-            BoxMM("Techo_Ext_C", ext, new Vector3(SecX0 - 0.3f, H + 0.1f, NorthZ + 0.3f), new Vector3(EastX + 0.3f, H + 0.25f, Sec06N + 0.3f), mRoof, 2f, false);
+            BoxMM("Techo_Ext_C", ext, new Vector3(SecX0 - 0.3f, H + 0.11f, HallZ - 0.3f), new Vector3(Sec06E + 0.3f, H + 0.26f, Sec06N + 0.3f), mRoof, 2f, false);
         }
 
         // ================================================================= puertas
@@ -375,7 +379,7 @@ namespace GNight.EditorTools
             CeilingLight("pasillo", new Vector3(2.3f, H - 0.1f, 0f), 1.8f, 6f, false);
             CeilingLight("sala", new Vector3(-1.6f, H - 0.1f, -3.0f), 2.8f, 8.5f);
             CeilingLight("cocina", new Vector3(2.8f, H - 0.1f, -3.0f), 2.8f, 8f);
-            var sec = CeilingLight("secreta", new Vector3(3.55f, H - 0.1f, 3.05f), 1.9f, 6.5f, false);
+            var sec = CeilingLight("secreta", new Vector3(4.55f, H - 0.1f, 3.05f), 2.2f, 7.5f, false);
             sec.lightSource.color = new Color(0.85f, 0.95f, 1f);
             Switch("dormitorio", new Vector3(-2.0f, 1.25f, HallZ + T + 0.01f), 180f);
             Switch("bano", new Vector3(0.3f, 1.25f, HallZ + T + 0.01f), 180f);
@@ -384,8 +388,8 @@ namespace GNight.EditorTools
             Switch("cocina", new Vector3(2.75f, 1.25f, -HallZ - T - 0.01f), 0f);
             Emergency(new Vector3(-0.4f, H - 0.1f, 0f));
             Emergency(new Vector3(3.6f, H - 0.1f, 0.4f));
-            Emergency(new Vector3(3.55f, H - 0.1f, 2.4f));
-            Emergency(new Vector3(3.55f, H - 0.1f, 4.6f));
+            Emergency(new Vector3(3.6f, H - 0.1f, 2.0f));
+            Emergency(new Vector3(5.5f, H - 0.1f, 4.4f));
             Emergency(new Vector3(-1.5f, H - 0.1f, -1.2f));
         }
 
@@ -395,7 +399,7 @@ namespace GNight.EditorTools
             var zr = Group("Zonas", root);
             Zone(zr, "dormitorio", "Dormitorio", "Bedroom", WestX, 0, HallZ, BedN);
             Zone(zr, "bano", "Baño", "Bathroom", BathX0, SecX0, HallZ, NorthZ);
-            Zone(zr, "secreta", "Habitación 06", "Room 06", SecX0, EastX, HallZ, Sec06N);
+            Zone(zr, "secreta", "Habitación 06", "Room 06", SecX0, Sec06E, HallZ, Sec06N);
             Zone(zr, "pasillo", "Pasillo", "Hallway", WestX, EastX, -HallZ, HallZ);
             Zone(zr, "sala", "Sala", "Living room", WestX, KitX0, SouthZ, -HallZ);
             Zone(zr, "cocina", "Cocina", "Kitchen", KitX0, EastX, SouthZ, -HallZ);

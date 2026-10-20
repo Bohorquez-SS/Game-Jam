@@ -15,6 +15,8 @@ namespace GNight
         public PushButton isoKitchen, isoBedroom, isoSelf;
         public TextMesh screen;
         public bool selfOptionVisible;
+        /// <summary>(18/10) El protocolo está preparado y el doble está en la cocina: la consola muestra la decisión por IDENTIDADES.</summary>
+        public bool decisionReady;
 
         void Start()
         {
@@ -36,10 +38,9 @@ namespace GNight
         {
             if (ui == null) return;
             if (!ui.gameObject.activeSelf) ui.gameObject.SetActive(true);
-            bS.SetActive(selfOptionVisible);
-            if (bK.Tick()) Click(isoKitchen, "cocina");
-            if (bB.Tick()) Click(isoBedroom, "dormitorio");
-            if (selfOptionVisible && bS.Tick()) Click(isoSelf, "secreta");
+            bS.SetActive(decisionReady); bK.SetActive(decisionReady); bB.SetActive(false);   // sin opción "dormitorio": no hay nadie ahí
+            if (decisionReady && bK.Tick()) Click(isoKitchen, "cocina");
+            if (decisionReady && bS.Tick()) Click(isoSelf, "secreta");
             if (bExit.Tick() && FocusSystem.I) FocusSystem.I.Exit();
             Refresh();
         }
@@ -65,10 +66,10 @@ namespace GNight
             feedB = Feed("Cam_Dormitorio", new Vector2(420, -120), out camB);
             help = UIKit.Txt("Ayuda", ui, 24, TextAnchor.UpperCenter, new Color(0.88f, 0.9f, 0.86f));
             UIKit.Place(help.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0, 160), new Vector2(1700, 120));
-            bK = new UIButton(ui, Settings.T("AISLAR COCINA", "ISOLATE KITCHEN"), new Vector2(0.5f, 0f), new Vector2(-560, 90), new Vector2(330, 80), 26);
-            bB = new UIButton(ui, Settings.T("AISLAR DORMITORIO", "ISOLATE BEDROOM"), new Vector2(0.5f, 0f), new Vector2(-190, 90), new Vector2(330, 80), 26);
-            bS = new UIButton(ui, Settings.T("AISLAR 06 (AQUÍ)", "ISOLATE 06 (HERE)"), new Vector2(0.5f, 0f), new Vector2(180, 90), new Vector2(330, 80), 26);
-            bExit = new UIButton(ui, Settings.T("SALIR  [Esc]", "EXIT  [Esc]"), new Vector2(0.5f, 0f), new Vector2(560, 90), new Vector2(260, 80), 24);
+            bK = new UIButton(ui, Settings.T("AISLAR AL DOBLE\n<size=18>identidad B · cocina</size>", "ISOLATE THE DOUBLE\n<size=18>identity B · kitchen</size>"), new Vector2(0.5f, 0f), new Vector2(-470, 90), new Vector2(420, 90), 28);
+            bB = new UIButton(ui, "-", new Vector2(0.5f, 0f), new Vector2(-2000, -2000), new Vector2(10, 10), 10);
+            bS = new UIButton(ui, Settings.T("AISLARME A MÍ MISMO\n<size=18>identidad A · habitación 06</size>", "ISOLATE MYSELF\n<size=18>identity A · room 06</size>"), new Vector2(0.5f, 0f), new Vector2(0, 90), new Vector2(420, 90), 28);
+            bExit = new UIButton(ui, Settings.T("SALIR  [Esc]", "EXIT  [Esc]"), new Vector2(0.5f, 0f), new Vector2(470, 90), new Vector2(300, 90), 24);
             ui.gameObject.SetActive(false);
         }
 
@@ -87,6 +88,21 @@ namespace GNight
             bool blink = Mathf.FloorToInt(Time.unscaledTime * 2f) % 2 == 0;
             power.text = ok ? Settings.T("<color=#6dff8a>ENERGÍA OK · ALARMA + CÁMARAS + CERRADURAS</color>", "<color=#6dff8a>POWER OK · ALARM + CAMERAS + LOCKS</color>")
                             : Settings.T("<color=#ff6655>ENERGÍA INSUFICIENTE · enciende ALARMA + CÁMARAS + CERRADURAS en el cuadro de la cocina (7)</color>", "<color=#ff6655>LOW POWER · turn on ALARM + CAMERAS + LOCKS at the kitchen panel (7)</color>");
+            if (decisionReady)
+            {
+                title.text = Settings.T("GUARDIÁN · <color=#ff5544>DOS IDENTIDADES COINCIDENTES DETECTADAS</color>", "GUARDIAN · <color=#ff5544>TWO MATCHING IDENTITIES DETECTED</color>");
+                sensors.text = Settings.T("<b>IDENTIDAD A</b>\n<color=#ffffff>TÚ</color>\nHabitación 06 · esta consola\n\n<b>IDENTIDAD B</b>\n<color=#ffffff>EL DOBLE</color>\nCocina · en cuarentena\n\nRecuerdos: <color=#ff5544>100 % compatibles</color>\nVerificación de origen: <color=#ff5544>FALLIDA</color>\n\n<size=20><color=#888888>El Sujeto 0 (la figura sin cara) no cuenta como identidad: es una copia fallida.</color></size>",
+                                       "<b>IDENTITY A</b>\n<color=#ffffff>YOU</color>\nRoom 06 · this console\n\n<b>IDENTITY B</b>\n<color=#ffffff>THE DOUBLE</color>\nKitchen · quarantined\n\nMemories: <color=#ff5544>100% compatible</color>\nOrigin check: <color=#ff5544>FAILED</color>\n\n<size=20><color=#888888>Subject 0 (the faceless figure) is not an identity: it's a failed copy.</color></size>");
+                var sy = SecurityCameraSystem.I;
+                CamTo(feedK, camK, sy != null ? sy.ByZone("cocina") : null, Settings.T("IDENTIDAD B · COCINA", "IDENTITY B · KITCHEN"), blink);
+                feedB.texture = null; feedB.color = new Color(0.03f, 0.04f, 0.035f);
+                camB.text = Settings.T("IDENTIDAD A · <b>TÚ</b> · HABITACIÓN 06\n\n\n\n\n\n<size=40>?</size>", "IDENTITY A · <b>YOU</b> · ROOM 06\n\n\n\n\n\n<size=40>?</size>");
+                help.text = Settings.T("El protocolo requiere aislar UNA identidad. Solo una puede abandonar la casa. <color=#ffcc88>La decisión es irreversible.</color>",
+                                       "The protocol requires isolating ONE identity. Only one may leave the house. <color=#ffcc88>The decision is irreversible.</color>");
+                bK.interactable = bS.interactable = ok;
+                return;
+            }
+            title.text = Settings.T("GUARDIÁN · CONSOLA DE AISLAMIENTO", "GUARDIAN · ISOLATION CONSOLE");
             var sbd = new System.Text.StringBuilder(Settings.T("<b>SENSORES DE MOVIMIENTO</b>\n\n", "<b>MOTION SENSORS</b>\n\n"));
             foreach (var z in new[] { "sala", "cocina", "pasillo", "dormitorio" })
             {
@@ -99,8 +115,8 @@ namespace GNight
             var sys = SecurityCameraSystem.I;
             CamTo(feedK, camK, sys != null ? sys.ByZone("cocina") : null, Settings.T("COCINA", "KITCHEN"), blink);
             CamTo(feedB, camB, sys != null ? sys.ByZone("dormitorio") : null, Settings.T("DORMITORIO", "BEDROOM"), blink);
-            help.text = Settings.T("Compara: ¿el sensor marca movimiento <b>fijo</b>? ¿la cámara está en <b>DIRECTO</b>? Aísla solo la zona donde coinciden.  ·  REC con hora vieja = cámara CONGELADA.",
-                                   "Compare: is the sensor <b>steady</b>? is the camera <b>LIVE</b>? Only isolate the zone where both agree.  ·  REC with an old time = FROZEN camera.");
+            help.text = !decisionReady ? Settings.T("PROTOCOLO NO PREPARADO. Restaura ALARMA + CÁMARAS + CERRADURAS en el cuadro de la cocina.", "PROTOCOL NOT READY. Restore ALARM + CAMERAS + LOCKS at the kitchen panel.") : Settings.T("AISLAR = sellar esa zona para siempre. Solo UNA identidad puede salir de la casa.\nCompara: ¿el sensor marca movimiento <b>fijo</b>? ¿la cámara está en <b>DIRECTO</b>? REC con hora vieja = cámara CONGELADA." + (selfOptionVisible ? "\n<color=#ffcc88>AISLAR 06 te encierra a ti, aquí dentro.</color>" : ""),
+                                   "ISOLATE = seal that zone forever. Only ONE identity can leave the house.\nCompare: is the sensor <b>steady</b>? is the camera <b>LIVE</b>? REC with an old time = FROZEN camera." + (selfOptionVisible ? "\n<color=#ffcc88>ISOLATE 06 locks YOU in, right here.</color>" : ""));
             bK.interactable = bB.interactable = bS.interactable = ok;
         }
 

@@ -11,6 +11,7 @@ namespace GNight
         C3_Cintas = 4,       // mensajes imposibles, cintas VHS
         C3_Persecucion = 5,  // segunda persecución
         C4_Protocolo = 6,    // llave, armario, habitación 06, grabación
-        C5_Final = 7         // aislamiento final y epílogo
+        C5_Final = 7,        // restaurar energía con la entidad suelta
+        C5_Decision = 8      // (18/10) checkpoint antes de la decisión: protocolo preparado, doble en la cocina
     }
 }

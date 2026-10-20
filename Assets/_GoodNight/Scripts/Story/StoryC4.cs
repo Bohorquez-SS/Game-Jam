@@ -169,7 +169,9 @@ namespace GNight
                 "Si escuchas esto, GUARDIÁN contó dos.",
                 "No es un intruso. Nadie entra en esta casa sin que la alarma lo vea.",
                 "La casa... hace copias. Las hace dentro. Aparecen en una habitación, sin cruzar ninguna puerta.",
-                "Y la copia no sabe que lo es. Recuerda la cena. Recuerda a su madre. Te recuerda a ti.",
+                "La primera vez no salió bien. La casa intentó copiar a tu madre... y se quedó a medias. Sin cara. Sin nombre.",
+                "GUARDIÁN la registró como SUJETO 0. Imita voces, sobre todo la de ella. Busca a alguien con quien terminar de copiarse.",
+                "Las copias siguientes salieron mejor. Demasiado bien. La copia no sabe que lo es. Recuerda la cena. Recuerda a su madre. Te recuerda a ti.",
                 "Si tú eres mi hijo, aísla al otro. Si no lo eres...",
                 "...entonces ten el valor de quedarte. Te quiero. A los dos. Lo siento."
             };
@@ -178,7 +180,9 @@ namespace GNight
                 "If you're hearing this, GUARDIAN counted two.",
                 "It's not an intruder. Nobody gets into this house without the alarm seeing it.",
                 "The house... makes copies. It makes them inside. They appear in a room without crossing any door.",
-                "And the copy doesn't know it is one. It remembers dinner. It remembers its mother. It remembers you.",
+                "The first time it went wrong. The house tried to copy your mother... and it stopped halfway. No face. No name.",
+                "GUARDIAN logged it as SUBJECT 0. It imitates voices, hers most of all. It's looking for someone to finish copying itself from.",
+                "The next copies came out better. Too well. The copy doesn't know it is one. It remembers dinner. It remembers its mother. It remembers you.",
                 "If you are my son, isolate the other one. If you aren't...",
                 "...then have the courage to stay. I love you. Both of you. I'm sorry."
             };
@@ -190,6 +194,7 @@ namespace GNight
             }
             Set("dadTapeDone");
             JournalManager.I.AddClue("dad", T("Papá: las copias aparecen dentro de una habitación sin cruzar puertas, y no saben que son copias.", "Dad: copies appear inside a room without crossing doors, and don't know they are copies."));
+            JournalManager.I.AddClue("subject0", T("SUJETO 0: la primera copia, fallida. Intentó ser mamá y se quedó sin cara. Imita voces (¿la «mamá» de la puerta?) y busca a quién copiar.", "SUBJECT 0: the first, failed copy. It tried to be mom and was left without a face. It imitates voices (the \"mom\" at the door?) and looks for someone to copy."));
             if (TruthCount >= 3) StartCoroutine(SayLater(1f, You, T("23:46. El dormitorio. Ninguna puerta... Yo aparecí en mi escritorio a las 23:47.", "23:46. The bedroom. No door... I was at my desk at 23:47."), 5f));
             if (R.auxLever) R.auxLever.available = true;
             O.Set(T("Habitación 06", "Room 06"),

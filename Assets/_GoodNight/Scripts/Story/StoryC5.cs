@@ -23,42 +23,59 @@ namespace GNight
             GameClock.Set(2, 13);
             yield return H.ShowTitle(ChapterLabel, 2.5f);
             IsolationStation.Motion.Clear();
-            R.isolation.selfOptionVisible = false;
-            O.Set(T("Aísla al duplicado", "Isolate the duplicate"),
-                  T("GUARDIÁN necesita ALARMA + CÁMARAS + CERRADURAS (3+2+2 = 7). Luces y 06 tendrán que quedarse apagados.", "GUARDIAN needs ALARM + CAMERAS + LOCKS (3+2+2 = 7). Lights and 06 must stay off."),
-                  T("Restaura alarma, cámaras y cerraduras en el cuadro", "Restore alarm, cameras and locks at the panel"),
-                  T("Vuelve a la consola de la habitación 06", "Return to the room 06 console"),
-                  T("Decide a quién aislar", "Decide who to isolate"));
+            R.isolation.selfOptionVisible = false; R.isolation.decisionReady = false;
+            O.Set(T("Activa el protocolo de aislamiento de GUARDIÁN", "Activate GUARDIAN's isolation protocol"),
+                  T("En el cuadro de la cocina: ALARMA + CÁMARAS + CERRADURAS (3+2+2 = 7). Luces y 06 apagados. El Sujeto 0 anda suelto: escucha sus pasos.", "At the kitchen panel: ALARM + CAMERAS + LOCKS (3+2+2 = 7). Lights and 06 off. Subject 0 is loose: listen to its steps."),
+                  T("Activa el protocolo de aislamiento (cuadro de la cocina)", "Activate the isolation protocol (kitchen panel)"),
+                  T("Regresa a la consola de la habitación 06", "Go back to the room 06 console"));
             yield return Wait(2f);
-            // la entidad anda suelta mientras la casa está a oscuras
+            // (18/10) un ruido al otro lado de la casa: la entidad empieza LEJOS (dormitorio) y patrulla solo la mitad oeste
+            // (dormitorio · pasillo · sala · baño). El camino 06 → cocina queda libre si se espera el momento.
+            A.At(A.metalBang != null ? A.metalBang : A.knock, R.spawnBedroom.position + Vector3.up * 1.2f, 0.75f, 25f);
+            CameraFX.Shake(0.08f);
+            yield return Wait(1.2f);
+            H.Say(You, T("Eso fue en mi cuarto... Papá la llamaba SUJETO 0. La primera copia. La que salió mal.", "That was in my room... Dad called it SUBJECT 0. The first copy. The one that went wrong."), 5f);
+            P.Receive(PhoneSystem.Guardian, T("SUJETO 0 · SIN IDENTIDAD · EN MOVIMIENTO\nZONA: DORMITORIO", "SUBJECT 0 · NO IDENTITY · MOVING\nZONE: BEDROOM"), true, -1f, false);
+            yield return Wait(5f);
+            if (Has("c5Power") || stage != Stage.C5_Final) yield break;   // ya restauraste la energía: no volver a soltarla
             E.telegraph = true;
-            E.OnCaught = () => GameManager.I.Die(T("\"En la oscuridad, las dos caras eran la misma.\"", "\"In the dark, both faces were the same.\""));
-            E.Spawn(R.spawnHallEnd.position, R.spawnHallEnd.eulerAngles.y, false, R.routeFinal, AIState.Patrol);
-            E.patrolSpeed = 1.1f;
-            A.SetTension(0.6f);
+            E.OnCaught = () => GameManager.I.Die(T("\"El Sujeto 0 no tiene cara. Buscaba la tuya.\"", "\"Subject 0 has no face. It was looking for yours.\""));
+            E.Spawn(R.spawnBedroom.position, R.spawnBedroom.eulerAngles.y, false, new[] { 0, 1, 2, 7, 8, 9, 7, 2, 3, 6, 3, 2, 1 }, AIState.Patrol);
+            E.patrolSpeed = 0.95f; E.chaseSpeed = 2.5f; E.sight = 8f; E.sightFlashlightOff = 5f; E.hearRun = 7f;
+            E.loseTime = 3f; E.searchTime = 6f;   // te pierde antes y vuelve a patrullar: intenso pero justo
+            A.SetTension(0.45f);
             yield return Wait(3f);
+            H.Hint(T("Escucha sus pasos. Cuando se aleje hacia el oeste, ve a la cocina por el pasillo.", "Listen to its steps. When it moves away to the west, go to the kitchen through the hallway."), 6f);
             P.Receive(PhoneSystem.Unknown, T("Él también cree que es el verdadero.", "He also thinks he's the real one."));
         }
 
+        // =====================================================================================
+        //  (18/10) CAPÍTULO 5 — SECUENCIA DETERMINISTA
+        //  C5_Final:    energía (cuadro de la cocina) con el Sujeto 0 suelto. NADA se cierra mientras estás en la cocina.
+        //  → "Protocolo preparado": el Sujeto 0 se retira. Al volver a la 06 (y SOLO entonces, con el jugador lejos)
+        //    GUARDIÁN pone la cocina en cuarentena: el doble está ahí y se ve por las cámaras. Checkpoint C5_Decision.
+        //  C5_Decision: consola → revelación (dos identidades) → AISLAR AL DOBLE (final A) / AISLARME A MÍ MISMO (final B).
+        //  Cada paso comprueba su bandera: ninguna corrutina vieja puede volver a cerrar puertas.
+        // =====================================================================================
         void C5_Event(string id)
         {
             if (id.StartsWith("inspected:")) { C4_Event(id); return; }
-            if (id == "power_changed" && !Has("c5Power") && PowerPanel.I.SecurityComplete)
+            if (stage == Stage.C5_Final && id == "power_changed" && !Has("c5Power") && PowerPanel.I.SecurityComplete)
             {
                 Set("c5Power");
                 O.Check(0);
                 StartCoroutine(C5_PowerRestored());
             }
-            else if (id == "zone:secreta" && Has("c5Ready") && Set("c5Back")) O.Check(1);
+            else if (id == "focus:isolation" && Has("c5Ready") && Set("c5Reveal")) StartCoroutine(C5_Reveal());
             else if (id.StartsWith("isolate:") && !Has("c5Ready"))
-                H.Say("GUARDIÁN", T("Consola iniciando. Espere.", "Console starting. Please wait."), 2.5f);
+                H.Say("GUARDIÁN", T("Protocolo no preparado. Restaure ALARMA + CÁMARAS + CERRADURAS en el cuadro de la cocina.", "Protocol not ready. Restore ALARM + CAMERAS + LOCKS at the kitchen panel."), 3.5f);
             else if (id.StartsWith("isolate:") && Set("isolated"))
             {
                 string z = id.Substring(8);
-                O.Check(1); O.Check(2);
-                if (z == "cocina") StartCoroutine(EndingManager.I.PlayA());
-                else if (z == "secreta") StartCoroutine(EndingManager.I.PlayB());
-                else StartCoroutine(C5_WrongIsolation());
+                O.Clear();
+                R.isolation.decisionReady = false;
+                if (z == "secreta") StartCoroutine(EndingManager.I.PlayB());   // aislarme a mí mismo
+                else StartCoroutine(EndingManager.I.PlayA());                   // aislar al doble (cocina)
             }
         }
 
@@ -66,62 +83,111 @@ namespace GNight
         {
             A.UI(A.check, 0.8f);
             A.PlayVoice(Voice.Guardian, null, 0.7f);
-            H.Say("GUARDIÁN", T("Sistemas de seguridad en línea. Consola de aislamiento disponible.", "Security systems online. Isolation console available."), 4f);
-            // la entidad se retira cuando deja de perseguirte
-            for (float t = 0f; t < 25f && (E.State == AIState.Chase || E.State == AIState.Notice || E.State == AIState.InspectHide); t += Time.deltaTime) yield return null;
-            bool returned = false;
-            E.OnReturned = () => returned = true;
-            E.ReturnTo(R.nodeHallEnd);
-            for (float t = 0f; !returned && t < 20f; t += Time.deltaTime) yield return null;
-            E.Despawn();
-            A.SetTension(0.25f);
+            H.Say("GUARDIÁN", T("Alarma, cámaras y cerraduras en línea. Protocolo de aislamiento: PREPARADO.", "Alarm, cameras and locks online. Isolation protocol: READY."), 4f);
+            H.Hint(T("Protocolo preparado. Regresa a la consola de GUARDIÁN (habitación 06).", "Protocol ready. Go back to the GUARDIAN console (room 06)."), 6f);
+            O.Set(T("Regresa a la consola de GUARDIÁN", "Go back to the GUARDIAN console"),
+                  T("La consola está en la habitación 06 (pasillo, puerta metálica). El Sujeto 0 se está retirando.", "The console is in room 06 (hallway, metal door). Subject 0 is retreating."),
+                  T("Activa el protocolo de aislamiento (cuadro de la cocina)", "Activate the isolation protocol (kitchen panel)"),
+                  T("Regresa a la consola de la habitación 06", "Go back to the room 06 console"));
+            O.Check(0);
+            // el Sujeto 0 se retira YA (aunque te estuviera persiguiendo), lejos del camino a la 06
+            if (E.gameObject.activeInHierarchy && E.State != AIState.Scripted)
+            {
+                E.OnCaught = null;
+                bool returned = false;
+                E.OnReturned = () => returned = true;
+                E.ReturnTo(R.nodeBedroom);
+                A.SetTension(0.2f);
+                for (float t = 0f; !returned && t < 15f; t += Time.deltaTime) yield return null;
+            }
+            // esperar a que el jugador esté en la 06: la cuarentena de la cocina NUNCA ocurre con el jugador dentro
+            while (stage == Stage.C5_Final && !InRoom06()) yield return null;
+            if (stage != Stage.C5_Final || Has("isolated")) yield break;
+            C5_SetupDecision();
+            SaveStage(Stage.C5_Decision);
+            yield return Wait(1.5f);
+            H.Say(You, T("Las cámaras... hay alguien en la cocina.", "The cameras... there's someone in the kitchen."), 3.5f);
+        }
 
-            // cámara del dormitorio: congelada en la imagen de las 23:46 (la cama ocupada)
+        bool InRoom06()
+        {
+            var p = R.player.transform.position;
+            return RoomZone.At(p) == "secreta" || (p.x > HouseZone06.X0 + 0.1f && p.x < HouseZone06.X1 && p.z > HouseZone06.Z0 + 0.35f && p.z < HouseZone06.Z1);
+        }
+
+        /// <summary>Estado de la decisión (también al cargar el checkpoint): cocina en cuarentena con el doble, cámaras en DIRECTO, consola lista.</summary>
+        void C5_SetupDecision()
+        {
+            Set("c5Power"); Set("c5Ready");
+            E.Despawn();
+            R.doppelBedRoot.gameObject.SetActive(false);                 // nadie durmiendo en el dormitorio
             var bedCam = SecurityCameraSystem.I.ByZone("dormitorio");
             var kitchenCam = SecurityCameraSystem.I.ByZone("cocina");
             var hallCam = SecurityCameraSystem.I.ByZone("pasillo");
-            if (bedCam)
-            {
-                R.doppelBedRoot.gameObject.SetActive(true);
-                R.doppelBed.Play("LieIdle", 0f);
-                yield return null;
-                SecurityCameraSystem.I.Snapshot(bedCam);
-                R.doppelBedRoot.gameObject.SetActive(false);
-                bedCam.frozen = true; bedCam.frozenStamp = "23:46";
-            }
-            // el otro está en la cocina: GUARDIÁN baja las persianas y la sella
-            A.At(A.shutter, R.doorKitchen.transform.position, 1f);
-            foreach (var s in R.shuttersKitchen) s.SetDown(true);
-            R.doorKitchen.SetOpen(false);
+            if (bedCam) bedCam.frozen = false;                            // las cámaras muestran SOLO el presente
+            // cuarentena: el jugador está en la 06, lejos de la cocina
+            A.At(A.shutter, R.doorKitchen.transform.position, 0.8f);
+            foreach (var sh in R.shuttersKitchen) sh.SetDown(true);
+            R.doorKitchen.SetOpen(false, true);
             R.doorKitchen.locked = true;
-            R.doorKitchen.lockedEs = "No abre. GUARDIÁN la bloqueó. Del otro lado alguien respira.";
-            R.doorKitchen.lockedEn = "It won't open. GUARDIAN locked it. Someone's breathing on the other side.";
-            E.ShowAt(R.spawnKitchen.position, R.spawnKitchen.eulerAngles.y, "LookAround", true);
-            var feeds = new[] { kitchenCam, bedCam, hallCam };
+            R.doorKitchen.lockedEs = "Cuarentena de GUARDIÁN. Del otro lado alguien respira... con tu misma respiración.";
+            R.doorKitchen.lockedEn = "GUARDIAN quarantine. Someone's breathing on the other side... the same way you breathe.";
+            E.ShowAt(R.spawnKitchen.position, R.spawnKitchen.eulerAngles.y, "LookAround", true);   // ÚNICA instancia del doble
+            var an = E.Anim; if (an && kitchenCam) { an.lookTarget = kitchenCam.transform.position; an.lookWeight = 1f; }
+            var feeds = new[] { kitchenCam, hallCam, bedCam };
             for (int i = 0; i < R.secretMonitors.Length; i++)
             {
                 var m = R.secretMonitors[i];
                 m.showStatic = false; m.message = null; m.overrideTexture = null; m.source = feeds[i % feeds.Length]; m.SetOn(true);
             }
-            R.isolation.selfOptionVisible = TruthCount >= 3;
-            Set("c5Ready");
+            R.isolation.selfOptionVisible = true;
+            R.isolation.decisionReady = true;
+            O.Set(T("Decide qué identidad aislar", "Decide which identity to isolate"),
+                  T("Usa la consola de GUARDIÁN. Solo una identidad puede salir de la casa.", "Use the GUARDIAN console. Only one identity can leave the house."),
+                  T("Usa la consola de GUARDIÁN (habitación 06)", "Use the GUARDIAN console (room 06)"),
+                  T("Decide qué identidad aislar", "Decide which identity to isolate"));
             StartCoroutine(C5_Sensors());
             StartCoroutine(C5_KitchenVoice());
-            if (RoomZone.At(R.player.transform.position) == "secreta" && Set("c5Back")) O.Check(1);
-            if (R.isolation.selfOptionVisible)
-                StartCoroutine(SayLater(6f, You, T("Hay un tercer botón en la consola... AISLAR 06. Aquí dentro. Donde estoy yo.", "There's a third button on the console... ISOLATE 06. In here. Where I am."), 5f));
+            P.Receive(PhoneSystem.Unknown, T("Deja de fingir que eres yo.", "Stop pretending to be me."));
         }
 
-        /// <summary>Sensores: la cocina marca movimiento real y estable; el dormitorio parpadea a ritmo fijo (eco).</summary>
+        /// <summary>Checkpoint C5_Decision: empiezas en la 06 con el protocolo preparado.</summary>
+        IEnumerator C5_DecisionStart()
+        {
+            PlayerController.CutsceneLock = true;
+            H.SetFade(1f);
+            R.player.SetPose(R.poseSecret, -1f);
+            LightingManager.I.SetEmergency(true);
+            C5_SetupDecision();
+            yield return H.FadeTo(0f, 1.5f);
+            PlayerController.CutsceneLock = false;
+        }
+
+        /// <summary>La revelación, la primera vez que usas la consola con el protocolo preparado.</summary>
+        IEnumerator C5_Reveal()
+        {
+            A.SetAmbience(0.1f);
+            yield return Wait(0.6f);
+            A.UI(A.sting, 0.6f);
+            A.PlayVoice(Voice.Guardian, null, 0.8f);
+            H.Say("GUARDIÁN", T("Dos identidades coincidentes detectadas. Verificación de origen: fallida.", "Two matching identities detected. Origin verification: failed."), 4.5f);
+            yield return Wait(4.8f);
+            H.Say(You, T("Es igual a mí... Yo estaba aquí. Yo nunca salí. Entonces, ¿quién entró por la puerta?", "He looks just like me... I was here. I never left. Then who came in through the door?"), 5f);
+            yield return Wait(5.3f);
+            A.PlayVoice(Voice.Guardian, null, 0.8f);
+            H.Say("GUARDIÁN", T("Protocolo de aislamiento requerido. Solo una identidad puede abandonar la casa. Advertencia: la decisión es irreversible.", "Isolation protocol required. Only one identity may leave the house. Warning: the decision is irreversible."), 5.5f);
+            yield return Wait(5.8f);
+            H.Say(You, T("¿Y si yo soy la copia? ¿Cómo sé que mis recuerdos son reales?", "What if I'm the copy? How do I know my memories are real?"), 4.5f);
+            A.SetAmbience(0.6f);
+        }
+
+        /// <summary>Sensores: movimiento real (la entidad/el doble). Sin ecos falsos: solo el presente.</summary>
         IEnumerator C5_Sensors()
         {
-            float t = 0f;
-            while (stage == Stage.C5_Final && !Has("isolated"))
+            while ((stage == Stage.C5_Final || stage == Stage.C5_Decision) && !Has("isolated"))
             {
-                t += Time.deltaTime;
                 IsolationStation.Motion.Clear();
-                if (E.gameObject.activeInHierarchy) IsolationStation.Motion.Add(E.Zone);
-                if (t % 2f < 0.35f) IsolationStation.Motion.Add("dormitorio");
+                if (E.gameObject.activeInHierarchy && E.Zone != null) IsolationStation.Motion.Add(E.Zone);
                 yield return null;
             }
             IsolationStation.Motion.Clear();
@@ -129,14 +195,14 @@ namespace GNight
 
         IEnumerator C5_KitchenVoice()
         {
-            string[] es = { "¿Hay alguien? La puerta no abre.", "¿Mamá? ¿Ya llegaste?", "Escucho a alguien en el pasillo... ¿quién eres?", "Por favor. Yo vivo aquí." };
-            string[] en = { "Is someone there? The door won't open.", "Mom? Are you home?", "I hear someone in the hallway... who are you?", "Please. I live here." };
+            string[] es = { "¡Escúchame! ¡Yo soy el verdadero!", "¡Tú tienes mis recuerdos!", "¿Mamá? La puerta no abre... yo vivo aquí.", "¡No puedes encerrarme!", "¡Pregúntale a papá qué hizo!" };
+            string[] en = { "Listen to me! I'm the real one!", "You have my memories!", "Mom? The door won't open... I live here.", "You can't lock me in!", "Ask dad what he did!" };
             int i = 0;
             yield return Wait(8f);
-            while (stage == Stage.C5_Final && !Has("isolated"))
+            while ((stage == Stage.C5_Final || stage == Stage.C5_Decision) && !Has("isolated"))
             {
                 var p = R.spawnKitchen.position + Vector3.up * 1.6f;
-                if (Vector3.Distance(R.player.transform.position, p) < 9f)
+                if (Vector3.Distance(R.player.transform.position, p) < 9f && !FocusSystem.Active)
                 {
                     A.PlayVoice(Voice.You, p, 0.7f);
                     Knock(R.doorKitchen.transform.position, 0.6f);
@@ -145,24 +211,6 @@ namespace GNight
                 }
                 yield return Wait(Random.Range(12f, 18f));
             }
-        }
-
-        IEnumerator C5_WrongIsolation()
-        {
-            A.At(A.metalBang, R.doorBedroom.transform.position, 1f);
-            foreach (var s in R.shuttersBedroom) s.SetDown(true);
-            yield return Wait(2f);
-            A.PlayVoice(Voice.Guardian, null, 0.8f);
-            H.Say("GUARDIÁN", T("Dormitorio aislado. Ocupantes en la zona: cero.", "Bedroom isolated. Occupants in zone: zero."), 4f);
-            yield return Wait(4f);
-            H.Say(You, T("Cero... era una grabación.", "Zero... it was a recording."), 3f);
-            LightingManager.I.SetEmergency(false);
-            R.flashlight.Flicker(3f);
-            yield return Wait(2.5f);
-            Vector3 sp = R.doorMetal.transform.position; sp.y = R.player.transform.position.y;
-            E.Spawn(sp, Quaternion.LookRotation(R.player.transform.position - sp).eulerAngles.y, false, R.routeFinal, AIState.Patrol);
-            E.ForceChase();
-            E.OnCaught = () => GameManager.I.Die(T("\"Aislaste un recuerdo. Lo real seguía suelto.\"", "\"You isolated a memory. The real thing was still loose.\""));
         }
 
         // =====================================================================================

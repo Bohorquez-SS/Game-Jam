@@ -22,7 +22,7 @@ namespace GNight
             if (hunting) { timer = Mathf.Max(timer, 20f); return; }   // con la entidad suelta ya hay tensión de sobra
             timer -= Time.deltaTime;
             if (timer > 0f) return;
-            timer = Random.Range(40f, 75f);
+            timer = Random.Range(30f, 55f);
 
             int k; do k = Random.Range(0, 4); while (k == last); last = k;
             Vector3 eye = pc.EyePosition;

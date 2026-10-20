@@ -376,8 +376,8 @@ namespace GNight.EditorTools
             isolation.screen = scrT;
             Text3D("Cartel_Aislamiento", g, new Vector3(eastIn - 0.012f, 1.85f, 2.6f), 90f, "AISLAMIENTO", 0.006f, new Color(0.55f, 1f, 0.6f));
             isolationDoc = Doc("isolationDoc", "note_isolation", null, new Vector3(cbb.center.x - 0.1f, cbb.max.y + 0.004f, cbb.center.z + 0.3f), -80f, new Vector2(0.21f, 0.28f),
-                "Manual GUARDIÁN", "GUARDIAN manual", "«Aislamiento: sella una zona. Lo que queda dentro no sale.\n· Un sensor que parpadea a ritmo fijo es un ECO.\n· Una cámara con REC y una hora vieja está CONGELADA.\n· Aísle solo lo que confirmen un sensor estable y una cámara en DIRECTO.\n· Requiere ALARMA + CÁMARAS + CERRADURAS.»",
-                "\"Isolation: seals a zone. Whatever stays inside doesn't come out.\n· A sensor blinking at a steady rhythm is an ECHO.\n· A camera showing REC and an old time is FROZEN.\n· Only isolate what a steady sensor AND a LIVE camera confirm.\n· Requires ALARM + CAMERAS + LOCKS.\"", g);
+                "Manual GUARDIÁN", "GUARDIAN manual", "«Protocolo GUARDIÁN\n1. Restaure ALARMA + CÁMARAS + CERRADURAS (7), con LUCES y 06 apagados.\n2. Regrese a la habitación 06 para preparar el aislamiento.\n3. La consola mostrará dos identidades coincidentes. Solo una puede abandonar la casa.\n4. Elija AISLAR AL DOBLE o AISLARME A MÍ MISMO. La decisión es irreversible.»",
+                "\"GUARDIAN protocol\n1. Restore ALARM + CAMERAS + LOCKS (7), with LIGHTS and 06 off.\n2. Return to room 06 to prepare isolation.\n3. The console will show two matching identities. Only one may leave the house.\n4. Choose ISOLATE THE DOUBLE or ISOLATE MYSELF. The decision is irreversible.\"", g);
             // ---- casillero (escondite) en la esquina suroeste, junto a la entrada
             var lk = AgainstWall("locker", g, new Vector3(2.86f, 0, HallZ + In), 0f, 0f, "Locker");
             lockerHide = MakeHide(lk, "casillero", "locker", 0f, new[] { "Door" }, 1.5f);

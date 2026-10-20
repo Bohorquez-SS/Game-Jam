@@ -2,7 +2,7 @@
 
 Recorrido completo de principio a fin. Para cada tramo: objetivo, lugar, objeto, interacción, pista del juego, solución, evento de terror, condición para avanzar, punto de control y errores posibles.
 
-> No se la pasen a los testers. Para ellos está `QA_CHECKLIST.md` (sin spoilers).
+> No se la pasen a los testers. Para ellos está `QA_PLAYTEST.md` (primera sección sin spoilers).
 
 **Controles:** WASD moverse · Ratón mirar · Shift correr · Ctrl agacharse · E interactuar · Tab teléfono · F linterna · Esc pausa.
 En estaciones (monitor, panel de alarma, cuadro eléctrico, VHS, consola): **clic** en botones y palancas, **Esc** para salir.
@@ -24,20 +24,16 @@ En el teléfono: **1–4** cambiar de app, **rueda** elegir, **E** abrir/revelar
 
 ## Mapa
 
-```
-                 ┌──────────────┬─────────┬───────────┐
-                 │  DORMITORIO  │  BAÑO   │ HAB. 06   │  (06 = oculta detrás del
-                 │ cama·escrit. │ espejo  │ (secreta) │   armario del pasillo)
-                 │ armario      │ botiquín│           │
-   ┌─────────────┴──puerta──────┴─puerta──┴─[ARMARIO]─┤
-   │                    P A S I L L O                 │
-   ├──────────────arco─────────────┬──puerta──────────┤
-   │            SALA               │      COCINA      │
-   │ TV+VHS · cómoda · perchero    ├paso   mesa       │
-   │ monitor de cámaras            │ heladera·alacena │
-   │ panel de alarma               │ cuadro eléctrico │
-   └────────[PUERTA PRINCIPAL]─────┴──────────────────┘
-```
+| Zona | Referencias principales |
+|---|---|
+| Dormitorio | PC, cama, cinta B, armario para esconderse |
+| Baño | Lavabo, espejo, botiquín con cinta C |
+| Pasillo | Accesos a habitaciones y armario que oculta la 06 |
+| Sala | Entrada, cerrojo, alarma, monitor, cómoda, VHS y abrigo |
+| Cocina | Cuadro, fusible, linterna, alacena y cuarentena del doble |
+| Habitación 06 | Consola, documentos, mesa GRABACIONES y palanca auxiliar |
+
+Plano esquemático y flujo detallado en [Miro](https://miro.com/app/board/uXjVEXDjUbM=/).
 
 ## Puntos de control
 
@@ -51,6 +47,7 @@ En el teléfono: **1–4** cambiar de app, **rueda** elegir, **E** abrir/revelar
 | F6 | `C3_Persecucion` | Antes de la persecución con tu voz |
 | F7 | `C4_Protocolo` | Sobrevives a la persecución 2 |
 | F8 | `C5_Final` | GUARDIÁN bloquea la casa (fin cap. 4) |
+| Sin atajo directo | `C5_Decision` | Energía restaurada y jugador de vuelta en la habitación 06 |
 
 F9 reinicia el tramo actual · F10 panel de depuración · F11/F12 recorrido automático a final A/B · **Shift+F1..F5** abre directamente alarma / cámaras / cuadro / VHS / consola. Todo esto solo existe en el editor y en "Development Build".
 
@@ -130,7 +127,7 @@ F9 reinicia el tramo actual · F10 panel de depuración · F11/F12 recorrido aut
 
 - Terror: al juntar la segunda cinta, **platos en la cocina**; al entrar, un **cajón se cierra de golpe** detrás de ti.
 - Ver las cintas: **videograbadora** bajo la TV de la sala, clic en la ranura.
-- Puzzle: aparecen las cajas junto a la VHS; clic en **orden cronológico C → A → B** (22:10 → 22:47 → 01:24). Orden incorrecto: se reinicia la secuencia, sin castigo.
+- Puzzle: primero ver las tres cintas en la interfaz. Después seleccionar una cinta y colocarla en 1º, 2º o 3º. Orden **C → A → B** (22:10 → 22:47 → 01:24); pulsar **REPRODUCIR SECUENCIA**. Un orden incorrecto muestra el error y una pista; se puede corregir la colocación.
 - GUARDIÁN: *"23:46 DORMITORIO · SUJETO 2 (SIN INGRESO)"* → **Verdad 3/4**.
 - Opcional: **mirar la foto familiar** sobre la cómoda **después** del puzzle: ya no apareces → **Verdad 4/4**.
 - **Checkpoint C3_Persecucion.** La TV muestra tu dormitorio: tú mismo, de pie, mirando a la cámara.
@@ -144,8 +141,8 @@ F9 reinicia el tramo actual · F10 panel de depuración · F11/F12 recorrido aut
 1. Objetivo *El cuarto que no existe*. **Abrigo de papá** en el perchero junto a la puerta principal → **llave "06"**.
 2. Llave en la **cerradura del armario del pasillo** → el armario se desliza → **puerta metálica 06**.
 3. Cuadro eléctrico: el interruptor 5 ahora es **06 (carga 2)**. Hay que apagar otro para encenderlo (p. ej. Alarma + Cerraduras + 06 = 7).
-4. Entrar a la 06. Documentos opcionales: plano, notas de papá, **manual GUARDIÁN** (explica ECO y cámara CONGELADA, clave para el final).
-5. **Cinta de carrete** encima del archivador → colocarla en la **grabadora**. Grabación de papá: las copias aparecen dentro de una habitación sin cruzar puertas y no saben que son copias.
+4. Entrar a la 06. Documentos opcionales: plano, notas de papá, **manual GUARDIÁN** (energía, regreso a la 06 y elección irreversible de identidad).
+5. **Cinta de carrete** en la mesa **GRABACIONES**, pared izquierda al entrar, junto a la grabadora y bajo la lámpara → colocarla en la **grabadora**. Grabación de papá: las copias aparecen dentro de una habitación sin cruzar puertas y no saben que son copias.
 6. Bajar la **palanca roja de ENERGÍA AUXILIAR**.
 7. Terror: los monitores muestran tu cama: **alguien con tu cara** se incorpora mirando a la cámara. Bloqueo de GUARDIÁN, luz roja de emergencia, **aparición en la puerta de la 06** (jumpscare).
 8. GUARDIÁN: *"Ocupantes: dos. Autorizados: uno. Aísle al duplicado antes del amanecer."* **Checkpoint C5_Final.**
@@ -154,25 +151,24 @@ F9 reinicia el tramo actual · F10 panel de depuración · F11/F12 recorrido aut
 
 ## CAPÍTULO 5: ¿A quién dejaste salir? (02:13)
 
-1. Objetivo *Aísla al duplicado*. La entidad anda suelta por la casa a oscuras (linterna, escondites).
-2. Cuadro de la cocina: **ALARMA + CÁMARAS + CERRADURAS = 7**. GUARDIÁN: *"Consola de aislamiento disponible."* La entidad se retira.
-3. GUARDIÁN **sella la cocina** con persianas. Dentro, alguien con tu voz: *"¿Mamá? La puerta no abre… Yo vivo aquí."*
-4. Volver a la **consola de la 06**. Comparar sensores (pantalla de la consola) con cámaras (monitores):
+1. Objetivo **Activa el protocolo de aislamiento de GUARDIÁN**. El Sujeto 0 (figura sin cara, copia fallida) patrulla la casa. No es el doble humanoide de la decisión final.
+2. En el cuadro de la cocina: **ALARMA + CÁMARAS + CERRADURAS = 7**, con **LUCES y 06 apagados**.
+3. Nuevo objetivo: **Regresa a la consola de GUARDIÁN**. La entidad se retira hacia el dormitorio. Salir de la cocina y entrar en la habitación 06: el juego espera ese regreso antes de sellar la cocina para no encerrar al jugador allí.
+4. Se prepara la decisión: desaparece el Sujeto 0, se sella la cocina y aparece el doble humanoide dentro. Se guarda **C5_Decision**. Al recargar este punto de control se restaura directamente la decisión preparada (reloj 02:31).
+5. Objetivo **Decide qué identidad aislar**. Usar la consola de la 06. Identidad A = tú, en 06; identidad B = el doble, en la cocina. Los recuerdos son compatibles y la verificación de origen falla. La cámara de cocina está en directo; el dormitorio no contiene una tercera identidad.
 
-| Zona | Sensor | Cámara | Conclusión |
-|---|---|---|---|
-| Cocina | ● fijo | DIRECTO: se ve al otro chico | Hay alguien de verdad |
-| Dormitorio | parpadea a ritmo fijo (ECO) | REC 23:46 congelada | Grabación: no hay nadie |
+| Botón de la consola | Resultado |
+|---|---|
+| **AISLAR AL DOBLE** | Final A |
+| **AISLARME A MÍ MISMO** | Final B |
 
-- **AISLAR COCINA** → Final A.
-- **AISLAR DORMITORIO** → muerte (vuelve a C5_Final).
-- **AISLAR 06** (tú mismo) → Final B. **Solo aparece con 3 o más verdades.**
+Ambas opciones aparecen al estar preparado el protocolo, **sin un mínimo de verdades**. No existe una opción de dormitorio en esta interfaz. La decisión es irreversible; no se resuelve comparando un ECO con una grabación congelada.
 
 ## Finales
 
-- **A · "Buenos días":** encierras al de la cocina; sales al amanecer y llega mamá. Corte a la cámara: *SUJETO 1 (AUTORIZADO) · AISLADO*. Encerraste al verdadero.
-- **B · "Buenas noches" (verdadero):** te aíslas tú; eres el SUJETO 2. El hijo real sale; mamá llega. Último mensaje: *"Cuídalo, ma."*
-- Ambos: título GOOD NIGHT, nombre del final, verdades x/4, créditos y vuelta al menú.
+- **A · «Buenos días»:** aíslas al doble en la cocina y sales a las 06:00. Llega mamá. GUARDIÁN informa **«SUJETO ORIGINAL: CONTENIDO · RECONSTRUCCIÓN: LIBERADA»**.
+- **B · «Buenas noches»:** te aíslas en la 06 y la otra identidad sale. El análisis final dice **«IDENTIDAD ORIGINAL: NO CONCLUYENTE»** y que ambos presentan recuerdos auténticos. La guía no identifica este final como canónico ni afirma que el que sale sea necesariamente el original.
+- Ambos muestran GOOD NIGHT, nombre del final, verdades x/4, créditos y regreso al menú.
 
 ## Las 4 verdades
 
@@ -187,7 +183,7 @@ F9 reinicia el tramo actual · F10 panel de depuración · F11/F12 recorrido aut
 
 - Cap. 2: abrir el cerrojo o la puerta durante la voz falsa.
 - Persecuciones: ser atrapado, o salir del escondite con la entidad delante.
-- Cap. 5: aislar el dormitorio.
+- Cap. 5, antes de preparar la decisión: ser atrapado por el Sujeto 0.
 
 Al morir: pantalla GOOD NIGHT y reintento desde el último punto de control.
 
@@ -197,4 +193,4 @@ Al morir: pantalla GOOD NIGHT y reintento desde el último punto de control.
 - Si una persecución se siente injusta, ajustar `EnemyAI` (velocidades/visión) y la duración en `StoryC2.cs`/`StoryC3.cs`.
 - Si un tester no encuentra algo, revisar primero si miró las pistas del teléfono (app Objetivos).
 
-**Duración estimada** jugando normal: 30–40 minutos.
+**Duración orientativa:** 30–40 minutos, pendiente de medir con jugadores. Esta revisión del 20/10/2026 fue estática: no se compiló ni se ejecutó Unity.

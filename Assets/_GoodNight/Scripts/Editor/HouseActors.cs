@@ -155,7 +155,7 @@ namespace GNight.EditorTools
             ghostFar.rotation = Quaternion.Euler(0, YawTo(ghostFar.position, cams[1].transform.position), 0);
             ghostNear.rotation = Quaternion.Euler(0, YawTo(ghostNear.position, cams[1].transform.position), 0);
 
-            // --- el doble acostado en tu cama (revelación del cap. 4 y cámara congelada del cap. 5)
+            // --- el doble acostado en tu cama (revelación del cap. 4; se retira al preparar C5_Decision)
             doppelBedRoot = Group("Doble_En_Cama", chars, new Vector3(-3.3f, 0.52f, 4.05f), 0f);
             Character("double", doppelBedRoot, Vector3.zero, 0f, "Visual", false, out doppelBed);
             doppelBedRoot.gameObject.SetActive(false);

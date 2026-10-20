@@ -19,7 +19,7 @@ Una noche aparentemente tranquila se convierte en una pesadilla. El protagonista
 - **2 finales**, decididos por una elección de identidad en el capítulo 5.
 - **Sistema GUARDIÁN:** cámaras de vigilancia con archivo y directo, panel de alarma, cuadro eléctrico con fusibles y consola de aislamiento.
 - **Puzles ambientales:** código de alarma, fusible F2, reconstrucción de la secuencia de tres cintas VHS, llave del armario y habitación secreta 06.
-- **Entidad con IA propia:** patrulla por un grafo de nodos, detecta, persigue, busca y pierde al jugador cuando se esconde (armario, alacena).
+- **Entidad autónoma:** patrulla por un grafo de nodos, detecta, persigue, busca y pierde al jugador cuando se esconde (armario, alacena).
 - **Teléfono en primera persona:** mensajes, llamadas, objetivos y pistas.
 - **Terror dinámico:** jumpscares con guion (espejo del baño, puerta principal, ventana), sonidos ambientales espaciales y capa de tensión según la cercanía de la entidad.
 - **Voces** en español para los diálogos principales.
@@ -80,13 +80,37 @@ Assets/_GoodNight/
 Tools/            Scripts auxiliares (Blender, texturas, voces)
 ```
 
-Documentación adicional: `WALKTHROUGH_DEVELOPERS.md` (recorrido completo, contiene spoilers), `QA_PLAYTEST.md` (guía de prueba), `CHANGELOG.md`, `VOICE_LINES.md`.
+## Documentación y organización
+
+- [Recorrido completo](WALKTHROUGH_DEVELOPERS.md): contiene spoilers, puzles y las dos decisiones finales.
+- [Plan de pruebas](QA_PLAYTEST.md): observación de jugadores y comprobaciones técnicas pendientes de ejecutar en Unity.
+- [Evolución del proyecto](Docs/EVOLUCION_DEL_PROYECTO.md): ocho etapas acumulativas y commits publicados realmente.
+- [Verificación de la entrega](Docs/VERIFICACION_FINAL.md): comparación con `GoodNightFinal.zip`, integridad y límites de la revisión.
+- [Cambios](CHANGELOG.md) y [líneas de voz](VOICE_LINES.md).
+- [Miro: diseño del juego](https://miro.com/app/board/uXjVEXDjUbM=/).
+- [Trello: documentación y evolución](https://trello.com/b/JUy925jS/good-night-desarrollo-del-juego).
+
+Las cuatro verdades aportan contexto narrativo; no son un requisito para desbloquear los finales. El capítulo 5 restaura la seguridad, exige regresar a la habitación 06 y después permite elegir qué identidad aislar.
+
+## Herramientas y flujo de recursos
+
+| Herramienta | Uso comprobable en el proyecto |
+|---|---|
+| Unity 6.3 LTS + URP | Escena, iluminación, materiales, interfaz y compilación |
+| C# | Jugador, estaciones, capítulos, entidad y constructores del escenario |
+| Blender | Scripts de modelado/exportación en `Tools/` y modelos FBX |
+| Python | Preparación de modelos, texturas, audio y voces; scripts en `Tools/` |
+| Piper TTS | Voces en español, índice de generación y WAV en `Resources/Voices` |
+| Git y GitHub | Historial por versiones, ramas de trabajo e integración en `dev` |
+| Miro y Trello | Diseño documentado, referencias de entrega y evolución verificada |
+
+Los scripts auxiliares se revisan antes de ejecutarlos; las rutas y dependencias de sus herramientas externas pueden requerir configuración local. La revisión estática del 20/10 no sustituyó una compilación ni una partida en Unity.
 
 ## Equipo
 
 | Integrante |
 |---|
-| Kevin Moyo |
+| Kevin Mollo |
 | Sebastián Condori |
 | Santiago Borquez |
 | David Bustos |
@@ -95,7 +119,6 @@ Documentación adicional: `WALKTHROUGH_DEVELOPERS.md` (recorrido completo, conti
 
 - Modelos base: **KayKit** (Kay Lousberg) — CC0.
 - Síntesis de voz: **Piper** — MIT. Voces `es_ES-carlfm-x_low` (dominio público) y `es_ES-mls_10246-low` (CC BY 4.0).
-- Durante la jam se usaron herramientas de inteligencia artificial como apoyo, con autorización del docente; el detalle está en los créditos del juego.
 
 ---
 

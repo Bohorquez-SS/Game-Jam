@@ -1,5 +1,17 @@
 # GOOD NIGHT: registro de cambios
 
+## 20/10/2026: coherencia de la entrega final
+
+- Verificado el contenido completo de `GoodNightFinal.zip` contra `main` y `dev`: 1.406 archivos Unity y 12 archivos auxiliares idénticos antes de esta corrección.
+- Manual GUARDIÁN, pista guardada e instrucciones de consola alineados con la decisión entre dos identidades. Se actualizan el constructor y el documento de la escena guardada.
+- Tres entradas de pistas para los objetivos reales del capítulo 5 en español/inglés; orientación de palanca auxiliar corregida a pared este.
+- Guía de recorrido y plan de pruebas actualizados; se elimina la condición antigua de tres verdades y la opción de dormitorio de la documentación.
+- Nombre de Kevin corregido a Mollo; créditos de herramientas actualizados conservando licencias de terceros.
+- Nuevos documentos de evolución verificable y auditoría de entrega, con enlaces a Miro y Trello.
+- No se alteran condiciones de los finales, diálogos con voz, recursos binarios ni historial anterior. Revisión estática; compilación y playtest pendientes.
+
+Las entradas del 18/10 se conservan como registro heredado del proyecto. Sus afirmaciones de pruebas no se revalidaron en Unity durante la revisión del 20/10.
+
 ## 18/10/2026 (tarde): correcciones P0 para la entrega
 
 ### Escenario
@@ -49,5 +61,5 @@
 
 ### Documentos
 - `WALKTHROUGH_DEVELOPERS.md`: guía completa con spoilers, puntos de control, pistas y errores posibles.
-- `QA_CHECKLIST.md`: guía de prueba sin spoilers para jugadores nuevos + checklist técnico.
+- `QA_PLAYTEST.md`: guía de prueba sin spoilers para jugadores nuevos + checklist técnico.
 - `CHANGELOG.md`: este archivo.

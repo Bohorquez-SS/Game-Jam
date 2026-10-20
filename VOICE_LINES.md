@@ -1,7 +1,7 @@
 # GOOD NIGHT — Voces (VOICE_LINES)
 
-Todas las líneas habladas ya tienen un archivo generado con **Piper TTS** (voces `mls_10246`, CC BY 4.0, y `carlfm`, dominio público).
-Están en `Assets/_GoodNight/Resources/Voices/<archivo>.wav`. El juego las reproduce solas al mostrar el subtítulo (sistema `VoiceBank`).
+Las **87 líneas en español de esta tabla** tienen un archivo generado con **Piper TTS** (voces `mls_10246`, CC BY 4.0, y `carlfm`, dominio público), registrado en `Tools/Voices/index.json`.
+Están en `Assets/_GoodNight/Resources/Voices/<archivo>.wav`. El juego intenta reproducir la voz al mostrar el subtítulo (sistema `VoiceBank`); la existencia de estas voces no implica doblaje completo en inglés. La revisión del 20/10 comprobó nombres, hashes y lectura de los WAV, sin una prueba de escucha en Unity.
 
 **Para reemplazar una voz por una grabación real**: graba la frase, expórtala a WAV (mono, 22050 o 44100 Hz) y guárdala con **el mismo nombre de archivo** de la tabla. No hay que tocar código. Si una frase no tiene archivo, el juego muestra el subtítulo igual.
 

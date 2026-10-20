@@ -5,8 +5,9 @@ namespace GNight
 {
     /// <summary>CAPÍTULO 5 — ¿A QUIÉN DEJASTE SALIR? (02:13).
     /// 1) Con la entidad suelta, restaurar ALARMA + CÁMARAS + CERRADURAS (7/7, sin luces ni 06).
-    /// 2) En la consola de aislamiento: sensores (uno es un ECO rítmico) y cámaras (la del dormitorio está CONGELADA: REC 23:46).
-    /// 3) Aislar: COCINA → final A · 06 (tú mismo, si descubriste la verdad) → final B · DORMITORIO → muerte (aislaste una grabación).</summary>
+    /// 2) Regresar a la habitación 06 antes de sellar la cocina y guardar C5_Decision.
+    /// 3) Elegir identidad: AISLAR AL DOBLE → final A · AISLARME A MÍ MISMO → final B.
+    /// Ambas opciones están disponibles sin un mínimo de verdades; el dormitorio no es una opción.</summary>
     public partial class StoryManager
     {
         IEnumerator C5_Start(bool fromCheckpoint)

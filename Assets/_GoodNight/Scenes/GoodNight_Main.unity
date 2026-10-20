@@ -2844,14 +2844,8 @@ MonoBehaviour:
   id: isolationDoc
   titleEs: "Manual GUARDI\xC1N"
   titleEn: GUARDIAN manual
-  textEs: "\xABAislamiento: sella una zona. Lo que queda dentro no sale.\n\xB7 Un
-    sensor que parpadea a ritmo fijo es un ECO.\n\xB7 Una c\xE1mara con REC y una
-    hora vieja est\xE1 CONGELADA.\n\xB7 A\xEDsle solo lo que confirmen un sensor
-    estable y una c\xE1mara en DIRECTO.\n\xB7 Requiere ALARMA + C\xC1MARAS + CERRADURAS.\xBB"
-  textEn: "\"Isolation: seals a zone. Whatever stays inside doesn't come out.\n\xB7
-    A sensor blinking at a steady rhythm is an ECHO.\n\xB7 A camera showing REC and
-    an old time is FROZEN.\n\xB7 Only isolate what a steady sensor AND a LIVE camera
-    confirm.\n\xB7 Requires ALARM + CAMERAS + LOCKS.\""
+  textEs: "«Protocolo GUARDIÁN\n1. Restaure ALARMA + CÁMARAS + CERRADURAS (7), con LUCES y 06 apagados.\n2. Regrese a la habitación 06 para preparar el aislamiento.\n3. La consola mostrará dos identidades coincidentes. Solo una puede abandonar la casa.\n4. Elija AISLAR AL DOBLE o AISLARME A MÍ MISMO. La decisión es irreversible.»"
+  textEn: "\"GUARDIAN protocol\n1. Restore ALARM + CAMERAS + LOCKS (7), with LIGHTS and 06 off.\n2. Return to room 06 to prepare isolation.\n3. The console will show two matching identities. Only one may leave the house.\n4. Choose ISOLATE THE DOUBLE or ISOLATE MYSELF. The decision is irreversible.\""
   backTextEs: 
   backTextEn: 
   verbEs: Leer

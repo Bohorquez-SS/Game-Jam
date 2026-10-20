@@ -5,9 +5,9 @@ using UnityEngine.UI;
 namespace GNight
 {
     /// <summary>
-    /// Consola de aislamiento (habitación 06). Muestra sensores de movimiento (con "ecos") y el estado de energía.
-    /// Los monitores CRT de la sala muestran las cámaras: las congeladas (REC, hora vieja) no son de fiar.
-    /// Botones: AISLAR COCINA · AISLAR DORMITORIO · (si descubriste la verdad) AISLAR 06.
+    /// Consola de aislamiento (habitación 06). Muestra energía y movimiento antes del protocolo.
+    /// Una vez preparado, permite elegir entre la identidad del jugador y la del doble.
+    /// Botones: AISLAR AL DOBLE · AISLARME A MÍ MISMO; sin requisito de verdades.
     /// </summary>
     public class IsolationStation : FocusStation
     {
@@ -25,7 +25,7 @@ namespace GNight
             if (isoSelf) isoSelf.Pressed = b => Press("secreta");
         }
 
-        public override string Hint => Settings.T("Compara sensores y cámaras · [Clic] aislar · [Esc] alejarse", "Compare sensors and cameras · [Click] isolate · [Esc] step back");
+        public override string Hint => Settings.T("Prepara el protocolo y elige una identidad · [Clic] · [Esc] alejarse", "Prepare the protocol and choose an identity · [Click] · [Esc] step back");
 
         // ---- interfaz a pantalla completa (18/10): sensores + cámaras COCINA/DORMITORIO lado a lado + botones grandes
         RectTransform ui; RawImage feedK, feedB; Text title, power, sensors, camK, camB, help;
@@ -110,13 +110,12 @@ namespace GNight
                 string n = rz != null ? rz.DisplayName.ToUpperInvariant() : z;
                 sbd.Append(Motion.Contains(z) ? "<color=#ff5544>●</color> " : "<color=#335533>○</color> ").Append(n).Append("\n\n");
             }
-            sbd.Append(Settings.T("<size=21>● fijo = algo real\n● parpadeo con ritmo fijo = ECO</size>", "<size=21>● steady = something real\n● steady-rhythm blink = ECHO</size>"));
+            sbd.Append(Settings.T("<size=21>● = movimiento detectado\n○ = sin movimiento detectado</size>", "<size=21>● = motion detected\n○ = no motion detected</size>"));
             sensors.text = sbd.ToString();
             var sys = SecurityCameraSystem.I;
             CamTo(feedK, camK, sys != null ? sys.ByZone("cocina") : null, Settings.T("COCINA", "KITCHEN"), blink);
             CamTo(feedB, camB, sys != null ? sys.ByZone("dormitorio") : null, Settings.T("DORMITORIO", "BEDROOM"), blink);
-            help.text = !decisionReady ? Settings.T("PROTOCOLO NO PREPARADO. Restaura ALARMA + CÁMARAS + CERRADURAS en el cuadro de la cocina.", "PROTOCOL NOT READY. Restore ALARM + CAMERAS + LOCKS at the kitchen panel.") : Settings.T("AISLAR = sellar esa zona para siempre. Solo UNA identidad puede salir de la casa.\nCompara: ¿el sensor marca movimiento <b>fijo</b>? ¿la cámara está en <b>DIRECTO</b>? REC con hora vieja = cámara CONGELADA." + (selfOptionVisible ? "\n<color=#ffcc88>AISLAR 06 te encierra a ti, aquí dentro.</color>" : ""),
-                                   "ISOLATE = seal that zone forever. Only ONE identity can leave the house.\nCompare: is the sensor <b>steady</b>? is the camera <b>LIVE</b>? REC with an old time = FROZEN camera." + (selfOptionVisible ? "\n<color=#ffcc88>ISOLATE 06 locks YOU in, right here.</color>" : ""));
+            help.text = Settings.T("PROTOCOLO NO PREPARADO. Restaura ALARMA + CÁMARAS + CERRADURAS (7), con LUCES y 06 apagados; después regresa a la habitación 06.", "PROTOCOL NOT READY. Restore ALARM + CAMERAS + LOCKS (7), with LIGHTS and 06 off; then return to room 06.");
             bK.interactable = bB.interactable = bS.interactable = ok;
         }
 
@@ -134,8 +133,8 @@ namespace GNight
         }
 
         public override string Instructions => Settings.T(
-            "<b>CONSOLA DE AISLAMIENTO</b>\nSENSORES: punto <b>fijo</b> = algo real · parpadeo con ritmo fijo = <b>ECO</b>.\nCÁMARAS (monitores): <b>DIRECTO</b> = imagen real · <b>REC</b> con hora vieja = <b>CONGELADA</b>.\nAísla solo la zona donde coincidan un sensor fijo y una cámara en directo.",
-            "<b>ISOLATION CONSOLE</b>\nSENSORS: <b>steady</b> dot = something real · blinking at a steady rhythm = <b>ECHO</b>.\nCAMERAS (monitors): <b>LIVE</b> = real image · <b>REC</b> with an old time = <b>FROZEN</b>.\nOnly isolate the zone where a steady sensor and a live camera agree.");
+            "<b>CONSOLA DE AISLAMIENTO</b>\nRestaura ALARMA + CÁMARAS + CERRADURAS (7) y vuelve a la habitación 06.\nCon el protocolo preparado: <b>AISLAR AL DOBLE</b> (cocina) o <b>AISLARME A MÍ MISMO</b> (06).\nAmbas identidades comparten recuerdos. GUARDIÁN no verifica su origen. Solo una puede salir; la decisión es irreversible.",
+            "<b>ISOLATION CONSOLE</b>\nRestore ALARM + CAMERAS + LOCKS (7) and return to room 06.\nOnce the protocol is ready: <b>ISOLATE THE DOUBLE</b> (kitchen) or <b>ISOLATE MYSELF</b> (06).\nBoth identities share memories. GUARDIAN cannot verify their origin. Only one may leave; the decision is irreversible.");
 
         void Press(string zone)
         {

@@ -131,7 +131,7 @@ namespace GNight
             else if (id == "inspected:fatherNotes" && Set("readNotes"))
                 JournalManager.I.AddClue("notes", T("Notas de papá: «La casa no deja entrar a nadie. Los hace. Una copia no recuerda haber llegado; recuerda haber estado siempre.»", "Dad's notes: \"The house doesn't let anyone in. It makes them. A copy doesn't remember arriving; it remembers having always been there.\""));
             else if (id == "inspected:isolationDoc" && Set("readIso"))
-                JournalManager.I.AddClue("iso", T("Manual GUARDIÁN: un sensor que parpadea a ritmo fijo es un ECO. Una cámara con REC y hora vieja está CONGELADA. Aísla solo lo que confirmen un sensor estable y una cámara en DIRECTO.", "GUARDIAN manual: a sensor blinking at a steady rhythm is an ECHO. A camera showing REC and an old time is FROZEN. Only isolate what a steady sensor AND a LIVE camera confirm."));
+                JournalManager.I.AddClue("iso", T("Manual GUARDIÁN: restaura ALARMA + CÁMARAS + CERRADURAS (7) y regresa a la habitación 06. La consola permite aislar al doble o a ti mismo. Solo una identidad puede salir; la decisión es irreversible.", "GUARDIAN manual: restore ALARM + CAMERAS + LOCKS (7) and return to room 06. The console allows isolating the double or yourself. Only one identity may leave; the decision is irreversible."));
         }
 
         /// <summary>Red de seguridad: entrar a la 06 se detecta también por posición (no solo por el evento de zona).</summary>

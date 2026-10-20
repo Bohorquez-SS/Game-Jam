@@ -1,0 +1,2 @@
+# Git no debe convertir finales de línea: así los archivos de Unity quedan idénticos a los del proyecto.
+* -text

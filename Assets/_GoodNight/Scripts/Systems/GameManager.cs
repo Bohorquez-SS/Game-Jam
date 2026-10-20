@@ -54,15 +54,18 @@ namespace GNight
         }
 
         /// <summary>Muerte: la entidad aparece frente a la cámara, se abalanza, grito, sacudida, negro y pantalla de muerte.</summary>
-        public void Die(string quote)
+        public void Die(string quote) { Die(quote, null); }
+
+        /// <summary>Muerte con origen del ataque (p. ej. la puerta principal): la entidad se abalanza desde ahí.</summary>
+        public void Die(string quote, Vector3? lungeFrom)
         {
             if (DebugAutoPlay.Active) { Debug.Log("[AUTOPLAY] (muerte ignorada) " + quote); return; }
             if (dead) return;
             dead = true;
-            StartCoroutine(DieCo(quote));
+            StartCoroutine(DieCo(quote, lungeFrom));
         }
 
-        IEnumerator DieCo(string quote)
+        IEnumerator DieCo(string quote, Vector3? lungeFrom)
         {
             PlayerController.CutsceneLock = true;
             if (Phone3D.I) Phone3D.I.Close();
@@ -73,22 +76,46 @@ namespace GNight
             HidingSpot.ForceExit();
             yield return null;
             var e = r != null ? r.enemy : null;
+            var am = AudioManager.I;
+            Vector3 start = Vector3.zero, end = Vector3.zero;
             if (e != null)
             {
                 var cam = r.player.cam;
                 Vector3 f = cam.forward; f.y = 0; if (f.sqrMagnitude < 0.01f) f = r.player.transform.forward; f.Normalize();
-                Vector3 p = cam.position + f * 0.9f; p.y = r.player.transform.position.y;
-                e.ShowAt(p, Quaternion.LookRotation(-f).eulerAngles.y, "Attack", false);
+                float py = r.player.transform.position.y;
+                if (lungeFrom.HasValue) { Vector3 d = lungeFrom.Value - cam.position; d.y = 0; if (d.sqrMagnitude > 0.04f) f = d.normalized; }
+                start = lungeFrom ?? cam.position + f * 1.9f; start.y = py;
+                end = cam.position + f * 0.5f; end.y = py;
+                e.ShowAt(start, Quaternion.LookRotation(-f).eulerAngles.y, "Attack", false);
                 e.LookAtPlayer(1f);
             }
-            if (AudioManager.I) { AudioManager.I.UI(AudioManager.I.entityScream != null ? AudioManager.I.entityScream : AudioManager.I.sting, 1f); AudioManager.I.UI(AudioManager.I.hitLow, 0.9f); }
-            CameraFX.Shake(0.9f); CameraFX.FovKick(-12f);
-            if (PostFX.I) PostFX.I.Shock(1f);
-            for (float t = 0; t < 0.7f; t += Time.deltaTime)
+            // un instante de silencio antes del golpe
+            if (am) { am.SetAmbience(0.05f); am.UI(am.breathClose, 0.7f); }
+            for (float t = 0; t < 0.22f; t += Time.deltaTime)
             {
-                if (e != null) r.player.LookAtPoint(e.head != null ? e.head.position : e.transform.position + Vector3.up * 1.7f, Time.deltaTime * 12f);
+                if (e != null) r.player.LookAtPoint(e.head != null ? e.head.position : e.transform.position + Vector3.up * 1.6f, Time.deltaTime * 14f);
                 yield return null;
             }
+            // se abalanza: sonido sincronizado (capas a volumen moderado, sin saturar), sacudida, destello rojo
+            if (am)
+            {
+                am.UI(am.scareHit2 != null ? am.scareHit2 : (am.scareHit != null ? am.scareHit : am.sting), 0.85f);
+                am.UI(am.entityScream != null ? am.entityScream : am.sting, 0.7f);
+                am.UI(am.hitLow, 0.6f);
+            }
+            CameraFX.Shake(0.9f); CameraFX.FovKick(-14f);
+            if (PostFX.I) PostFX.I.Shock(1f);
+            if (HUDView.I) { HUDView.I.Flash(new Color(0.55f, 0.02f, 0.02f, 0.45f), 0.25f); HUDView.I.Say(Settings.T("Tú", "You"), Settings.T("¡No—!", "No—!"), 1.2f); }
+            for (float t = 0; t < 0.75f; t += Time.deltaTime)
+            {
+                if (e != null)
+                {
+                    e.transform.position = Vector3.Lerp(start, end, Ease.Out(t / 0.32f));
+                    r.player.LookAtPoint(e.head != null ? e.head.position : e.transform.position + Vector3.up * 1.6f, Time.deltaTime * 16f);
+                }
+                yield return null;
+            }
+            if (am) am.SetAmbience(1f);
             HUDView.I.SetFade(1f);
             if (e != null) e.Despawn();
             if (AudioManager.I) AudioManager.I.SetTension(0f);

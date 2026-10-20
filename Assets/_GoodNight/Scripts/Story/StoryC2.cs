@@ -63,8 +63,15 @@ namespace GNight
         void C2_WakeEvent(string id)
         {
             if (id == "bolt_closed" && Set("boltScene")) StartCoroutine(C2_BoltScene());
-            else if (id == "bolt_opened" && Has("boltDanger")) GameManager.I.Die(T("\"No todas las voces quieren ayudarte.\"", "\"Not every voice wants to help you.\""));
-            else if (id == "door_opened:front" && Has("boltDanger")) GameManager.I.Die(T("\"No todas las voces quieren ayudarte.\"", "\"Not every voice wants to help you.\""));
+            else if (id == "bolt_opened" && Has("boltDanger"))
+            {
+                // abrir el cerrojo NO mata: la voz se alegra... y la puerta ya se puede abrir
+                A.PlayVoiceExact(Voice.Mom, R.frontDoorOutside.transform.position, 0.8f);
+                H.Say(T("¿Mamá? (afuera)", "Mom? (outside)"), T("Eso es, mijo... ahora la puerta. Ábreme.", "That's it, sweetie... now the door. Let me in."), 3.5f);
+                A.SetTension(0.6f);
+            }
+            else if (id == "bolt_closed" && Has("boltDanger")) A.SetTension(0.2f);
+            else if (id == "door_opened:front" && Has("boltDanger") && Set("openedToMom")) StartCoroutine(C2_OpenDoorDeath());
         }
 
         // ------------------------------------------------------------------ la voz detrás de la puerta
@@ -79,7 +86,8 @@ namespace GNight
             A.PlayVoiceExact(Voice.Mom, src, 0.9f);
             H.Say(T("¿Mamá? (afuera)", "Mom? (outside)"), T("¿Cariño? Soy yo. Me olvidé las llaves... ábreme, hace frío.", "Honey? It's me. I forgot my keys... open up, it's cold."), 4.5f);
             Set("boltDanger");
-            O.Set(T("¿Mamá?", "Mom?"), T("Mamá dijo que estaba en el trabajo hasta la mañana.", "Mom said she'd be at work until morning."), T("Decide qué hacer", "Decide what to do"));
+            R.bolt.SetKeyLocked(false);   // desde adentro la llave se puede girar: la decisión es REAL (cerrojo + puerta)
+            O.Set(T("¿Mamá?", "Mom?"), T("Mamá dijo que estaba en el trabajo hasta la mañana. Puedes abrir el cerrojo y la puerta... o alejarte.", "Mom said she'd be at work until morning. You can unlock the bolt and the door... or step away."), T("Decide si debes abrir la puerta", "Decide whether to open the door"));
             yield return Wait(5f);
             // tu teléfono la está llamando... sin que lo toques
             A.UI(A.phoneTap, 0.6f);
@@ -103,13 +111,40 @@ namespace GNight
             yield return Wait(1.5f);
             R.windowOutside[1].PlayOneShot(A.windowKnock, Settings.Sfx * 0.8f);
             yield return Wait(3f);
+            if (Has("openedToMom")) yield break;
             flags.Remove("boltDanger");
+            R.bolt.SetClosed(true); R.bolt.SetKeyLocked(true);
             P.Receive(PhoneSystem.Mama, MomCameras);
             GameClock.Set(0, 31);
             PowerPanel.I.fuseOK = false;
             SaveStage(Stage.C2_Camaras);
             yield return Wait(1.5f);
             yield return C2_CamerasStart(false);
+        }
+
+        /// <summary>Abrir a la "mamá": la puerta se abre despacio, no hay nadie... y aparece. Muerte justa: vuelves al despertar del cap. 2.</summary>
+        IEnumerator C2_OpenDoorDeath()
+        {
+            PlayerController.CutsceneLock = true;
+            if (Phone3D.I) Phone3D.I.Close();
+            O.Clear();
+            var door = R.doorFront;
+            var outside = R.frontDoorOutside.transform.position;
+            Vector3 doorway = door.transform.position + (outside - door.transform.position) * 0.35f;
+            A.SetTension(0f);
+            A.SetAmbience(0.05f);
+            if (A.doorSlow != null) A.At(A.doorSlow, door.transform.position, 0.9f); else A.At(A.doorCreak, door.transform.position, 0.9f);
+            // mirar hacia afuera: lluvia, la calle vacía
+            for (float t = 0; t < 2.2f; t += Time.deltaTime) { R.player.LookAtPoint(outside + Vector3.up * 1.5f, Time.deltaTime * 2.5f); yield return null; }
+            H.Say(You, T("¿Ma...? No hay nadie.", "Mom...? There's no one."), 2f);
+            A.At(A.thunder, outside, 0.35f);
+            for (float t = 0; t < 1.6f; t += Time.deltaTime) { R.player.LookAtPoint(outside + Vector3.up * 1.4f, Time.deltaTime * 2f); yield return null; }
+            // la voz, ahora pegada a tu oído
+            A.PlayVoiceExact(Voice.Mom, R.player.EyePosition + R.player.transform.right * 0.4f, 0.75f);
+            H.Say(T("¿Mamá?", "Mom?"), T("Gracias por abrirme.", "Thank you for letting me in."), 1.6f);
+            yield return Wait(0.9f);
+            PlayerController.CutsceneLock = false;
+            GameManager.I.Die(T("\"Mamá estaba en el trabajo. Lo sabías.\"", "\"Mom was at work. You knew that.\""), outside + (doorway - outside) * 0.2f);
         }
 
         // ------------------------------------------------------------------ cámaras
@@ -139,7 +174,7 @@ namespace GNight
             }
             else if (id == "camera_live_failed" && Set("needPower")) StartCoroutine(C2_PowerObjective());
             else if (id == "focus:breaker" && Has("needPower")) O.Check(0);
-            else if (id == "collected:fuse") { O.Check(1); H.Say(You, T("Un fusible de repuesto. F2.", "A spare fuse. F2."), 2.5f); }
+            else if (id == "collected:fuse") { O.Check(1); H.Hint(T("Fusible de repuesto obtenido.", "Spare fuse obtained."), 3f); H.Say(You, T("Un fusible F2. Ahora, al cuadro eléctrico.", "An F2 fuse. Now, the breaker panel."), 3f); }
             else if (id == "installed:fuse") O.Check(2);
             else if (id == "power_changed")
             {
@@ -183,7 +218,7 @@ namespace GNight
                   T("El fusible F2 está fundido. Papá dejó una nota junto al cuadro eléctrico de la cocina.", "Fuse F2 is blown. Dad left a note next to the kitchen breaker panel."),
                   T("Revisa el cuadro eléctrico (cocina)", "Check the breaker panel (kitchen)"),
                   T("Encuentra un fusible de repuesto", "Find a spare fuse"),
-                  T("Coloca el fusible", "Install the fuse"),
+                  T("Cambia el fusible quemado F2 (clic sobre él)", "Replace the blown F2 fuse (click it)"),
                   T("Alimenta CÁMARAS sin pasar de 7 (la alarma debe seguir activa)", "Power CAMERAS within 7 (keep the alarm on)"));
             if (PowerPanel.I.fuseOK) { O.Check(1); O.Check(2); }
         }

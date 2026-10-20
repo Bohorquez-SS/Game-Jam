@@ -9,6 +9,8 @@ namespace GNight
     public partial class StoryManager
     {
         int mirrorPhase; float mirrorT;
+        /// <summary>El lavabo solo funciona una vez, en el cap. 1, después de activar la alarma.</summary>
+        public bool WashAvailable => stage == Stage.C1_Noche && Has("sleepReady") && !Has("washed") && !PlayerController.CutsceneLock;
 
         IEnumerator C1_Intro()
         {
@@ -76,6 +78,7 @@ namespace GNight
                 H.Say(You, T("No es ese. «El día en que cambiamos la cerradura»...", "That's not it. \"The day we changed the lock\"..."), 3f);
             else if (id == "alarm_armed" && Set("armed")) StartCoroutine(C1_Armed());
             else if (id == "bed_sleep" && CanSleep && Set("slept")) StartCoroutine(C1_Sleep());
+            else if (id == "wash_face" && Has("sleepReady") && Set("washed")) StartCoroutine(C1_WashFace());
             else if (id == "door_opened:front" && Has("armed") && !Has("slept"))
                 H.Say(You, T("Mejor no. La alarma ya está activada.", "Better not. The alarm is already armed."), 2.5f);
         }
@@ -129,7 +132,7 @@ namespace GNight
             GameClock.Set(0, 4);
             Set("sleepReady");
             O.Set(T("Prepárate para dormir", "Get ready for bed"), T("El baño está en el pasillo. Tu cama, en el dormitorio.", "The bathroom is in the hallway. Your bed is in the bedroom."),
-                  T("Lávate la cara (opcional)", "Wash your face (optional)"), T("Acuéstate", "Lie down"));
+                  T("Lávate la cara en el lavabo del baño (opcional)", "Wash your face at the bathroom sink (optional)"), T("Acuéstate", "Lie down"));
             HorrorEventManager.I.OnEnterZone("hallFigure", "pasillo", () => stage == Stage.C1_Noche && Has("sleepReady"), () => StartCoroutine(C1_HallFigure()));
             if (HorrorEventManager.I.PlayerZone == "pasillo") StartCoroutine(C1_HallFigure());
         }
@@ -173,7 +176,7 @@ namespace GNight
             mirrorT += Time.deltaTime;
             switch (mirrorPhase)
             {
-                case 0: if (looking) { mirrorPhase = 1; mirrorT = 0f; R.mirror.lag = 0.45f; if (Has("sleepReady")) O.Check(0); } break;
+                case 0: if (looking) { mirrorPhase = 1; mirrorT = 0f; R.mirror.lag = 0.45f; } break;
                 case 1: if (mirrorT > 5f) { mirrorPhase = 2; mirrorT = 0f; } break;
                 case 2:
                     if (pc.AngleTo(mp) > 110f) { R.mirror.stare = true; R.mirror.lag = 3f; mirrorPhase = 3; mirrorT = 0f; A.At(A.whisper, mp, 0.4f); }
@@ -186,6 +189,68 @@ namespace GNight
                     }
                     break;
             }
+        }
+
+        /// <summary>
+        /// Lavarse la cara: el grifo, agua en la cara (cámara baja), silencio... al levantar la vista, en el espejo hay
+        /// alguien detrás de ti. Golpe de sonido, sacudida, se abalanza. Te das vuelta: nadie.
+        /// </summary>
+        IEnumerator C1_WashFace()
+        {
+            var basin = R.mirror != null ? R.mirror.basin : null;
+            if (basin == null || basin.standPose == null) yield break;
+            PlayerController.CutsceneLock = true;
+            if (Phone3D.I) Phone3D.I.Close();
+            var pose = basin.standPose; float yaw = pose.eulerAngles.y; float eye = R.player.standEye;
+            Vector3 tapPos = basin.tap != null ? basin.tap.position : pose.position + Vector3.up;
+            R.mirror.lag = 0f; R.mirror.stare = false;
+            yield return R.player.MoveCamera(pose.position, yaw, 12f, eye, 0f, 0.8f);
+            // grifo
+            AudioSource water = A.At(A.water != null ? A.water : A.tapeHiss, tapPos, 0.55f, 8f, 1f);
+            yield return Wait(0.5f);
+            // inclinarse sobre el lavabo
+            yield return R.player.MoveCamera(pose.position + pose.forward * 0.12f, yaw, 62f, eye - 0.32f, 0f, 0.7f);
+            H.Say("", T("(Agua helada en la cara...)", "(Ice-cold water on your face...)"), 2.2f);
+            yield return H.Blink(1);
+            yield return Wait(1.4f);
+            // el agua se corta sola. Silencio.
+            if (water) water.Stop();
+            A.SetAmbience(0.1f);
+            yield return Wait(1.1f);
+            // la figura se coloca DETRÁS del jugador (solo visible en el reflejo)
+            var sc = R.mirror.scare;
+            Vector3 back = -pose.forward; back.y = 0; back.Normalize();
+            Vector3 from = pose.position + back * 1.05f, to = pose.position + back * 0.42f;
+            if (sc)
+            {
+                sc.position = from; sc.rotation = Quaternion.LookRotation(-back, Vector3.up);
+                sc.gameObject.SetActive(true);
+                if (R.mirror.scareAnim) { R.mirror.scareAnim.Play("Stare", 0f); R.mirror.scareAnim.lookTarget = R.player.EyePosition; R.mirror.scareAnim.lookWeight = 1f; }
+            }
+            // levantar la vista despacio hacia el espejo
+            yield return R.player.MoveCamera(pose.position, yaw, 4f, eye, 0f, 1.3f);
+            yield return Wait(0.45f);
+            // golpe: sonido sincronizado + sacudida + se abalanza
+            A.UI(A.scareHit != null ? A.scareHit : A.sting, 0.85f);
+            A.At(A.entityScream, tapPos, 0.55f);
+            CameraFX.Shake(0.45f);
+            H.Flash(new Color(0.6f, 0.05f, 0.03f, 0.35f), 0.18f);
+            LightingManager.I.Flicker("bano", 1.2f);
+            if (R.mirror.scareAnim) R.mirror.scareAnim.Play("Attack", 0.05f, 1.3f, true);
+            for (float t = 0; t < 0.55f && sc; t += Time.deltaTime) { sc.position = Vector3.Lerp(from, to, Ease.InOut(t / 0.55f)); yield return null; }
+            yield return Wait(0.5f);
+            if (sc) sc.gameObject.SetActive(false);
+            // girarse de golpe: no hay nadie
+            yield return R.player.MoveCamera(pose.position, yaw + 180f, 0f, eye, 0f, 0.4f);
+            A.SetAmbience(1f);
+            yield return Wait(0.5f);
+            H.Say(You, T("¿Qué demonios fue eso?", "What the hell was that?"), 3.5f);
+            R.player.ReleaseEyeOverride();
+            PlayerController.CutsceneLock = false;
+            O.Check(0);
+            // el reflejo sigue "raro": al volver a mirarlo, se queda mirándote (verdad del espejo)
+            if (!Has("mirrorDone")) { mirrorPhase = 2; mirrorT = 0f; R.mirror.lag = 0.45f; }
+            JournalManager.I.AddClue("wash", T("Mientras me lavaba la cara vi a alguien detrás de mí en el espejo. Al girarme no había nadie.", "While washing my face I saw someone behind me in the mirror. When I turned around there was no one."));
         }
 
         IEnumerator C1_MirrorEnd()

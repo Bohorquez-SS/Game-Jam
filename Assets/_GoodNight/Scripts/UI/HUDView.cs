@@ -19,6 +19,7 @@ namespace GNight
         Text objHead, hintNotice;
         float hintNoticeT;
         Image objBg;
+        Image subBg, instrBg; Text instr;
         Text prompt, subtitle, title, objTitle, objItems, toastText, bannerText, hintText, focusHint, inspectTitle, inspectBody, inspectHint, chapter;
         CanvasGroup objGroup, inspectGroup;
         RectTransform toastRT;
@@ -47,19 +48,19 @@ namespace GNight
 
             // objetivo persistente (arriba a la izquierda): «OBJETIVO ACTUAL» + lista [ ] / [x]. Se resalta al cambiar.
             var ob = UIKit.Rect("Objective", ui.HUD);
-            UIKit.Place(ob, new Vector2(0, 1), new Vector2(0, 1), new Vector2(36, -30), new Vector2(640, 220));
+            UIKit.Place(ob, new Vector2(0, 1), new Vector2(0, 1), new Vector2(36, -30), new Vector2(740, 240));
             objGroup = ob.gameObject.AddComponent<CanvasGroup>(); objGroup.alpha = 0f;
             objBg = UIKit.Img("Bg", ob, new Color(0.02f, 0.025f, 0.035f, 0.55f));
             var obr = objBg.rectTransform; obr.anchorMin = new Vector2(0, 1); obr.anchorMax = new Vector2(0, 1); obr.pivot = new Vector2(0, 1);
-            obr.anchoredPosition = new Vector2(-14, 10); obr.sizeDelta = new Vector2(640, 200);
-            objHead = UIKit.Txt("Head", ob, 17, TextAnchor.UpperLeft, new Color(1f, 1f, 1f, 0.6f));
-            UIKit.Place(objHead.rectTransform, new Vector2(0, 1), new Vector2(0, 1), Vector2.zero, new Vector2(620, 24));
-            objTitle = UIKit.Txt("Title", ob, 25, TextAnchor.UpperLeft, UIKit.Accent);
+            obr.anchoredPosition = new Vector2(-14, 10); obr.sizeDelta = new Vector2(740, 220);
+            objHead = UIKit.Txt("Head", ob, 20, TextAnchor.UpperLeft, new Color(1f, 1f, 1f, 0.7f));
+            UIKit.Place(objHead.rectTransform, new Vector2(0, 1), new Vector2(0, 1), Vector2.zero, new Vector2(720, 28));
+            objTitle = UIKit.Txt("Title", ob, 31, TextAnchor.UpperLeft, UIKit.Accent);
             objTitle.horizontalOverflow = HorizontalWrapMode.Wrap; objTitle.verticalOverflow = VerticalWrapMode.Overflow;
-            UIKit.Place(objTitle.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, -24), new Vector2(610, 34));
-            objItems = UIKit.Txt("Items", ob, 22, TextAnchor.UpperLeft, new Color(0.93f, 0.93f, 0.93f));
+            UIKit.Place(objTitle.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, -28), new Vector2(710, 40));
+            objItems = UIKit.Txt("Items", ob, 26, TextAnchor.UpperLeft, new Color(0.95f, 0.95f, 0.95f));
             objItems.horizontalOverflow = HorizontalWrapMode.Wrap; objItems.verticalOverflow = VerticalWrapMode.Overflow;
-            UIKit.Place(objItems.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(2, -62), new Vector2(608, 150));
+            UIKit.Place(objItems.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(2, -74), new Vector2(708, 170));
             hintNotice = UIKit.Txt("HintNotice", ui.HUD, 20, TextAnchor.UpperLeft, new Color(0.65f, 0.85f, 1f));
             UIKit.Place(hintNotice.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(36, -250), new Vector2(640, 30));
             hintNotice.text = "";
@@ -87,7 +88,13 @@ namespace GNight
             UIKit.Stretch(hintText.rectTransform);
             hintBg.gameObject.SetActive(false);
 
-            focusHint = UIKit.Txt("FocusHint", ui.HUD, 19, TextAnchor.LowerCenter, new Color(1, 1, 1, 0.6f));
+            // cuadro de instrucciones del aparato en uso (arriba a la derecha)
+            instrBg = UIKit.Img("InstrBg", ui.HUD, new Color(0.02f, 0.025f, 0.035f, 0.78f));
+            UIKit.Place(instrBg.rectTransform, new Vector2(1, 1), new Vector2(1, 1), new Vector2(-30, -70), new Vector2(560, 200));
+            instr = UIKit.Txt("Instr", instrBg.rectTransform, 23, TextAnchor.UpperLeft, new Color(0.95f, 0.93f, 0.88f));
+            UIKit.Stretch(instr.rectTransform, 18, 14, 18, 14);
+            instrBg.enabled = false; instr.enabled = false;
+            focusHint = UIKit.Txt("FocusHint", ui.HUD, 22, TextAnchor.LowerCenter, new Color(1, 1, 1, 0.75f));
             UIKit.Place(focusHint.rectTransform, new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, 26), new Vector2(1400, 30));
 
             // inspección
@@ -104,8 +111,11 @@ namespace GNight
 
             fade = UIKit.Img("Fade", ui.Fade, Color.black); UIKit.Stretch(fade.rectTransform); fade.color = new Color(0, 0, 0, 0);
 
-            subtitle = UIKit.Txt("Subtitle", ui.Overlay, 30, TextAnchor.LowerCenter, Color.white);
-            UIKit.Place(subtitle.rectTransform, new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, 110), new Vector2(1500, 200));
+            // subtítulos: más grandes, abajo al centro, con fondo semitransparente que se ajusta al texto
+            subBg = UIKit.Img("SubtitleBg", ui.Overlay, new Color(0f, 0f, 0f, 0.55f));
+            UIKit.Place(subBg.rectTransform, new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, 96), new Vector2(100, 50));
+            subtitle = UIKit.Txt("Subtitle", ui.Overlay, 36, TextAnchor.LowerCenter, Color.white);
+            UIKit.Place(subtitle.rectTransform, new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, 108), new Vector2(1500, 220));
             title = UIKit.Txt("Title", ui.Overlay, 64, TextAnchor.MiddleCenter, new Color(0.92f, 0.9f, 0.84f, 0f));
             UIKit.Center(title.rectTransform, Vector2.zero, new Vector2(1700, 420));
         }
@@ -119,21 +129,35 @@ namespace GNight
             prompt.enabled = playing && !UIManager.ModalOpen && !Phone3D.IsOpen;
             bool hasObj = !string.IsNullOrEmpty(objTitle.text);
             bool objVisible = hasObj && playing && !UIManager.ModalOpen && !InspectSystem.Active && !FocusSystem.Active && !Phone3D.IsOpen && !PlayerController.CutsceneLock;
-            float objTarget = !objVisible ? 0f : (objCo != null ? 1f : 0.82f);
+            float objTarget = !objVisible ? 0f : (objCo != null ? 1f : 0.92f);
             objAlpha = Mathf.MoveTowards(objAlpha, objTarget, Time.unscaledDeltaTime * 2.5f);
             objGroup.alpha = objAlpha;
             if (hasObj)
             {
                 // el fondo se ajusta al texto
-                float h = 62f + objItems.preferredHeight + 14f;
-                objBg.rectTransform.sizeDelta = new Vector2(640, h);
-                objBg.color = new Color(objCo != null ? 0.08f : 0.02f, objCo != null ? 0.07f : 0.025f, 0.035f, 0.55f);
+                float h = 74f + objItems.preferredHeight + 16f;
+                objBg.rectTransform.sizeDelta = new Vector2(740, h);
+                objBg.color = new Color(objCo != null ? 0.08f : 0.02f, objCo != null ? 0.07f : 0.025f, 0.035f, 0.62f);
                 var o = ObjectiveManager.I;
                 objHead.text = o != null && o.Investigation ? Settings.T("INVESTIGACIÓN", "INVESTIGATION") : Settings.T("OBJETIVO ACTUAL", "CURRENT OBJECTIVE");
                 hintNotice.rectTransform.anchoredPosition = new Vector2(36, -30 - h - 6);
             }
             if (hintNoticeT > 0f) hintNoticeT -= Time.unscaledDeltaTime;
             hintNotice.enabled = objVisible && hintNoticeT > 0f;
+            if (instrBg)
+            {
+                var st = FocusSystem.Station;
+                string ins = st != null && !st.ConsumesMouse ? st.Instructions : null;
+                bool showI = playing && !string.IsNullOrEmpty(ins) && !UIManager.ModalOpen;
+                instrBg.enabled = instr.enabled = showI;
+                if (showI) { instr.text = ins; instrBg.rectTransform.sizeDelta = new Vector2(560, instr.preferredHeight + 30f); }
+            }
+            if (subBg)
+            {
+                bool hasSub = !string.IsNullOrEmpty(subtitle.text);
+                subBg.enabled = hasSub;
+                if (hasSub) subBg.rectTransform.sizeDelta = new Vector2(Mathf.Min(1540f, subtitle.preferredWidth + 56f), subtitle.preferredHeight + 26f);
+            }
             inspectGroup.alpha = Mathf.MoveTowards(inspectGroup.alpha, InspectSystem.Active ? 1f : 0f, Time.unscaledDeltaTime * 6f);
             chapter.text = playing && StoryManager.I != null ? StoryManager.I.ChapterLabel : "";
             int vhs = Settings.Vhs;
@@ -214,7 +238,9 @@ namespace GNight
         IEnumerator SayCo(string speaker, string text, float duration)
         {
             subtitle.text = string.IsNullOrEmpty(speaker) ? text : "<color=#f2c66d>" + speaker + ":</color> " + text;
-            yield return new WaitForSeconds(duration);
+            // tiempo mínimo de lectura: ~15 caracteres por segundo + 1.2 s
+            float minRead = 1.2f + (text != null ? text.Length : 0) / 15f;
+            yield return new WaitForSeconds(Mathf.Max(duration, minRead));
             subtitle.text = ""; subCo = null;
         }
         public void ClearSubtitle() { if (subCo != null) StopCoroutine(subCo); subCo = null; subtitle.text = ""; }

@@ -67,6 +67,68 @@ namespace GNight.EditorTools
             Debug.Log("[GOOD NIGHT QA] " + n + " fotos en " + dir);
         }
 
+        /// <summary>Abre (temporalmente) cada cajón deslizante y lo fotografía de cerca; también el escritorio y el panel de alarma.</summary>
+        [MenuItem("Tools/GOOD NIGHT/QA/Fotos de cajones y detalles")]
+        public static void Details()
+        {
+            string dir = Path.Combine(Path.GetDirectoryName(Application.dataPath), "QA_Snapshots");
+            Directory.CreateDirectory(dir);
+            var go = new GameObject("QA_Cam") { hideFlags = HideFlags.HideAndDontSave };
+            var cam = go.AddComponent<Camera>();
+            cam.cullingMask = ~((1 << 31) | (1 << 30) | (1 << 29) | (1 << 28) | (1 << 5));
+            cam.clearFlags = CameraClearFlags.SolidColor; cam.backgroundColor = new Color(0.1f, 0.1f, 0.12f);
+            cam.fieldOfView = 60f; cam.nearClipPlane = 0.02f; cam.farClipPlane = 30f;
+            var rt = new RenderTexture(960, 720, 24, RenderTextureFormat.ARGB32) { antiAliasing = 4 };
+            cam.targetTexture = rt;
+            int n = 0;
+            try
+            {
+                foreach (var d in Object.FindObjectsByType<Drawer>(FindObjectsSortMode.None))
+                {
+                    if (d.slide == null) continue;
+                    if (d.rotate)
+                    {
+                        if (d.id != "toolbox") continue;
+                        var r0 = d.slide.localRotation;
+                        d.slide.localRotation = r0 * Quaternion.Euler(d.openEuler);
+                        var bb = d.GetComponentInParent<Transform>().parent.GetComponentInChildren<Renderer>().bounds;
+                        go.transform.position = bb.center + new Vector3(-0.55f, 0.75f, 0f); go.transform.LookAt(bb.center);
+                        Shot(cam, rt, Path.Combine(dir, "cajon_toolbox.jpg")); n++;
+                        d.slide.localRotation = r0;
+                        continue;
+                    }
+                    var p0 = d.slide.localPosition;
+                    d.slide.localPosition = p0 + d.openOffset;
+                    Vector3 w = d.slide.parent != null ? d.slide.parent.TransformVector(d.openOffset).normalized : d.openOffset.normalized;
+                    var r = d.slide.GetComponentInChildren<Renderer>();
+                    Vector3 c = r != null ? r.bounds.center : d.slide.position;
+                    go.transform.position = c + w * 0.75f + Vector3.up * 0.55f;
+                    go.transform.LookAt(c - w * 0.12f);
+                    Shot(cam, rt, Path.Combine(dir, "cajon_" + d.id + ".jpg")); n++;
+                    d.slide.localPosition = p0;
+                }
+                var desk = GameObject.Find("Escritorio");
+                if (desk != null)
+                {
+                    var b = desk.GetComponentInChildren<Renderer>().bounds;
+                    go.transform.position = new Vector3(b.center.x - 1.1f, 1.45f, b.center.z - 0.2f); go.transform.LookAt(new Vector3(b.center.x, 0.85f, b.center.z));
+                    Shot(cam, rt, Path.Combine(dir, "detalle_escritorio.jpg")); n++;
+                }
+                var ap = GameObject.Find("Panel_Alarma");
+                if (ap != null)
+                {
+                    var b = ap.GetComponentInChildren<Renderer>().bounds;
+                    go.transform.position = b.center + new Vector3(0, 0.05f, 0.55f); go.transform.LookAt(b.center);
+                    Shot(cam, rt, Path.Combine(dir, "detalle_alarma.jpg")); n++;
+                }
+            }
+            finally
+            {
+                cam.targetTexture = null; rt.Release(); Object.DestroyImmediate(rt); Object.DestroyImmediate(go);
+            }
+            Debug.Log("[GOOD NIGHT QA] " + n + " fotos de detalle en " + dir);
+        }
+
         static void Shot(Camera cam, RenderTexture rt, string path)
         {
             cam.Render();

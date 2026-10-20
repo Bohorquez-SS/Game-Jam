@@ -24,6 +24,10 @@ namespace GNight
 
         public override string Hint => Settings.T("Compara sensores y cámaras · [Clic] aislar · [Esc] alejarse", "Compare sensors and cameras · [Click] isolate · [Esc] step back");
 
+        public override string Instructions => Settings.T(
+            "<b>CONSOLA DE AISLAMIENTO</b>\nSENSORES: punto <b>fijo</b> = algo real · parpadeo con ritmo fijo = <b>ECO</b>.\nCÁMARAS (monitores): <b>DIRECTO</b> = imagen real · <b>REC</b> con hora vieja = <b>CONGELADA</b>.\nAísla solo la zona donde coincidan un sensor fijo y una cámara en directo.",
+            "<b>ISOLATION CONSOLE</b>\nSENSORS: <b>steady</b> dot = something real · blinking at a steady rhythm = <b>ECHO</b>.\nCAMERAS (monitors): <b>LIVE</b> = real image · <b>REC</b> with an old time = <b>FROZEN</b>.\nOnly isolate the zone where a steady sensor and a live camera agree.");
+
         void Press(string zone)
         {
             if (PowerPanel.I != null && !PowerPanel.I.SecurityComplete)

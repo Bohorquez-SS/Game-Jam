@@ -17,6 +17,10 @@ namespace GNight
         public string zone = "bano";
         public float lag;               // segundos de retraso (0 = normal)
         public bool stare;              // la cabeza del reflejo sigue mirando al jugador
+        [Header("Lavabo + susto del espejo (18/10)")]
+        public WashBasin basin;
+        public Transform scare;         // figura que SOLO aparece en el reflejo (capa GN_Mirror)
+        public CharacterAnim scareAnim;
         RenderTexture rt; Material mat;
         readonly Queue<KeyValuePair<float, Pose>> history = new Queue<KeyValuePair<float, Pose>>();
 
@@ -29,6 +33,7 @@ namespace GNight
             mat = new Material(Shader.Find("Unlit/Texture")) { mainTexture = rt, mainTextureScale = new Vector2(-1, 1), mainTextureOffset = new Vector2(1, 0) };
             surface.sharedMaterial = mat;
             if (body) GNLayers.SetLayerRecursive(body.gameObject, GNLayers.Mirror);
+            if (scare) { GNLayers.SetLayerRecursive(scare.gameObject, GNLayers.Mirror); scare.gameObject.SetActive(false); }
         }
 
         void LateUpdate()

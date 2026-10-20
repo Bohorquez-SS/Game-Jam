@@ -77,10 +77,10 @@ namespace GNight
         {
             station.OnFocusTick();
             if (station == null || leaving) return;
-            // botones bajo el ratón
+            // botones bajo el ratón (salvo que la estación tenga su propia interfaz en pantalla)
             Ray ray = MouseRay();
             Clickable c = null;
-            if (Physics.Raycast(ray, out RaycastHit hit, 3f, ~0, QueryTriggerInteraction.Collide))
+            if (!station.ConsumesMouse && Physics.Raycast(ray, out RaycastHit hit, 3f, ~0, QueryTriggerInteraction.Collide))
                 c = hit.collider.GetComponentInParent<Clickable>();
             if (c != null && !c.interactable) c = null;
             if (c != hover) { if (hover) hover.SetHover(false); hover = c; if (hover) hover.SetHover(true); }

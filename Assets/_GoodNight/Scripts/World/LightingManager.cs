@@ -53,13 +53,13 @@ namespace GNight
                     Amb(new Color(0.16f, 0.15f, 0.17f), new Color(0.13f, 0.11f, 0.1f), new Color(0.07f, 0.06f, 0.05f)); moodScale = 1f;
                     Fog(new Color(0.03f, 0.035f, 0.05f), 14f, 45f); break;
                 case Mood.Night:
-                    Amb(new Color(0.12f, 0.13f, 0.17f), new Color(0.1f, 0.095f, 0.1f), new Color(0.05f, 0.05f, 0.05f)); moodScale = 0.9f;
+                    Amb(new Color(0.2f, 0.21f, 0.27f), new Color(0.17f, 0.16f, 0.17f), new Color(0.09f, 0.085f, 0.085f)); moodScale = 0.9f;   // más visible (antes casi negro)
                     Fog(new Color(0.02f, 0.025f, 0.04f), 12f, 40f); break;
                 case Mood.Dark:
-                    Amb(new Color(0.08f, 0.095f, 0.14f), new Color(0.06f, 0.065f, 0.08f), new Color(0.03f, 0.03f, 0.04f)); moodScale = 0.8f;
+                    Amb(new Color(0.15f, 0.165f, 0.22f), new Color(0.12f, 0.125f, 0.14f), new Color(0.06f, 0.06f, 0.07f)); moodScale = 0.8f;
                     Fog(new Color(0.015f, 0.02f, 0.03f), 10f, 34f); break;
                 case Mood.Emergency:
-                    Amb(new Color(0.12f, 0.06f, 0.07f), new Color(0.09f, 0.045f, 0.05f), new Color(0.04f, 0.02f, 0.02f)); moodScale = 0.65f;
+                    Amb(new Color(0.2f, 0.1f, 0.11f), new Color(0.15f, 0.08f, 0.085f), new Color(0.06f, 0.03f, 0.03f)); moodScale = 0.65f;
                     Fog(new Color(0.03f, 0.01f, 0.012f), 10f, 34f); break;
                 case Mood.Dawn:
                     Amb(new Color(0.45f, 0.38f, 0.4f), new Color(0.35f, 0.3f, 0.28f), new Color(0.15f, 0.12f, 0.1f)); moodScale = 1f;

@@ -30,7 +30,7 @@ namespace GNight
         public string Title => Settings.T(titleEs, titleEn);
         public string Text => Settings.T(textEs, textEn);
         public string BackText => string.IsNullOrEmpty(backTextEs) ? null : Settings.T(backTextEs, backTextEn);
-        public override string Prompt => Settings.T(verbEs, verbEn) + " " + Settings.T(titleEs, titleEn).ToLowerInvariant();
+        public override string Prompt { get { string t = Settings.T(titleEs, titleEn); return Settings.T(verbEs, verbEn) + " " + (t.Length > 1 && char.IsUpper(t[0]) && !char.IsUpper(t[1]) ? char.ToLowerInvariant(t[0]) + t.Substring(1) : t); } }
         public override bool CanInteract => available && !InspectSystem.Active;
 
         public override void Interact() { if (InspectSystem.I) InspectSystem.I.Inspect(this); }

@@ -17,5 +17,9 @@ namespace GNight
         public virtual void OnEnter() { }
         public virtual void OnExit() { }
         public virtual void OnFocusTick() { }
+        /// <summary>true mientras la estación muestra su propia interfaz en pantalla (los clics no van a los botones 3D).</summary>
+        public virtual bool ConsumesMouse => false;
+        /// <summary>Cómo funciona el aparato (cuadro de instrucciones en pantalla mientras se usa).</summary>
+        public virtual string Instructions => null;
     }
 }

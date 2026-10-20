@@ -19,6 +19,10 @@ namespace GNight
 
         public override string Hint => Settings.T("[Clic] o [0-9] teclear · [Enter] confirmar · [Esc] alejarse", "[Click] or [0-9] type · [Enter] confirm · [Esc] step back");
 
+        public override string Instructions => Settings.T(
+            "<b>PANEL DE ALARMA GUARDIÁN</b>\nIntroduce un PIN de <b>4 cifras</b> con las teclas (o con los números del teclado).\n<b>C</b> borra · <b>OK</b> confirma.\nMamá dijo que el código es <i>el día en que cambiaron la cerradura</i> (formato DDMM).",
+            "<b>GUARDIAN ALARM PANEL</b>\nEnter a <b>4-digit</b> PIN with the keys (or the number keys).\n<b>C</b> clears · <b>OK</b> confirms.\nMom said the code is <i>the day the lock was changed</i> (DDMM format).");
+
         void Press(int d)
         {
             var a = AlarmSystem.I;

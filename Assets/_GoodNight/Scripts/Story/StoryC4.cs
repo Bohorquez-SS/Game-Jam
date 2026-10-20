@@ -30,6 +30,37 @@ namespace GNight
                   T("Abre el armario del pasillo", "Open the hallway wardrobe"),
                   T("Entra en la habitación 06", "Enter room 06"));
             StartCoroutine(C4_Ambient());
+            StartCoroutine(C4_StuckHints());
+        }
+
+        /// <summary>Pistas progresivas (voz interior) si el jugador se atasca en el camino a la habitación 06.</summary>
+        IEnumerator C4_StuckHints()
+        {
+            float t = 0f; int step = 0; string last = "";
+            while (stage == Stage.C4_Protocolo && !Has("in06"))
+            {
+                yield return null;
+                if (PlayerController.CutsceneLock || FocusSystem.Active || InspectSystem.Active) continue;
+                string phase = !Has("gotKey") ? "key" : !Has("wardrobeOpen") ? "wardrobe" : !Has("metalOpen") ? "power" : "enter";
+                if (phase != last) { last = phase; t = 0f; step = 0; }
+                t += Time.deltaTime;
+                if (t < (step == 0 ? 55f : 45f)) continue;
+                t = 0f; step++;
+                switch (phase)
+                {
+                    case "key":
+                        H.Say(You, step == 1 ? T("¿Una llave...? Papá nunca sacaba nada de los bolsillos de su abrigo.", "A key...? Dad never emptied his coat pockets.")
+                                             : T("El abrigo de papá sigue en el perchero, junto a la puerta principal.", "Dad's coat is still on the rack, by the front door."), 4f); break;
+                    case "wardrobe":
+                        H.Say(You, step == 1 ? T("Una llave tan pequeña... es de un mueble, no de una puerta.", "Such a tiny key... it's for furniture, not a door.")
+                                             : T("El armario del pasillo tiene una cerradura pequeña. ¿Por qué está fijado a la pared?", "The hallway wardrobe has a small lock. Why is it fixed to the wall?"), 4f); break;
+                    case "power":
+                        H.Say(You, step == 1 ? T("La puerta 06 no tiene manija. Solo un panel apagado... necesita energía.", "Door 06 has no handle. Just a dead panel... it needs power.")
+                                             : T("En el cuadro de la cocina, el interruptor 5 dice 06. Tengo que apagar otra cosa para no pasar de 7.", "At the kitchen panel, switch 5 says 06. I have to turn something else off to stay within 7."), 4.5f); break;
+                    default:
+                        H.Say(You, T("La puerta metálica se destrabó. Está en el pasillo, donde estaba el armario.", "The metal door unlocked. It's in the hallway, where the wardrobe was."), 4f); break;
+                }
+            }
         }
 
         IEnumerator C4_Ambient()

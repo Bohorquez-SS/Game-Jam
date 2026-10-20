@@ -171,12 +171,12 @@ namespace GNight
             A.UI(A.sting, 0.6f);
             A.PlayVoice(Voice.Guardian, null, 0.8f);
             H.Say("GUARDIÁN", T("Dos identidades coincidentes detectadas. Verificación de origen: fallida.", "Two matching identities detected. Origin verification: failed."), 4.5f);
-            yield return Wait(4.8f);
+            yield return VoiceBank.Wait(4.8f);
             H.Say(You, T("Es igual a mí... Yo estaba aquí. Yo nunca salí. Entonces, ¿quién entró por la puerta?", "He looks just like me... I was here. I never left. Then who came in through the door?"), 5f);
-            yield return Wait(5.3f);
+            yield return VoiceBank.Wait(5.3f);
             A.PlayVoice(Voice.Guardian, null, 0.8f);
             H.Say("GUARDIÁN", T("Protocolo de aislamiento requerido. Solo una identidad puede abandonar la casa. Advertencia: la decisión es irreversible.", "Isolation protocol required. Only one identity may leave the house. Warning: the decision is irreversible."), 5.5f);
-            yield return Wait(5.8f);
+            yield return VoiceBank.Wait(5.8f);
             H.Say(You, T("¿Y si yo soy la copia? ¿Cómo sé que mis recuerdos son reales?", "What if I'm the copy? How do I know my memories are real?"), 4.5f);
             A.SetAmbience(0.6f);
         }

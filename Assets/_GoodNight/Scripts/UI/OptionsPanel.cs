@@ -18,6 +18,7 @@ namespace GNight
             sens = new UISlider(root, Settings.T("Sensibilidad del ratón", "Mouse sensitivity"), new Vector2(0, 150), Mathf.InverseLerp(0.3f, 5f, Settings.Sensitivity));
             bright = new UISlider(root, Settings.T("Brillo", "Brightness"), new Vector2(0, 90), Settings.Brightness);
             quality = new UIButton(root, "", new Vector2(0.5f, 0.5f), new Vector2(0, 10), new Vector2(560, 58), 26);
+            quality.SetActive(false);   // (18/10) sin selector de calidad: siempre ALTA
             vhs = new UIButton(root, "", new Vector2(0.5f, 0.5f), new Vector2(0, -60), new Vector2(560, 58), 26);
             full = new UIButton(root, "", new Vector2(0.5f, 0.5f), new Vector2(0, -130), new Vector2(560, 58), 26);
             lang = new UIButton(root, "", new Vector2(0.5f, 0.5f), new Vector2(0, -200), new Vector2(560, 58), 26);
@@ -37,7 +38,6 @@ namespace GNight
             if (sfx.Tick()) Settings.Sfx = sfx.Value;
             if (sens.Tick()) Settings.Sensitivity = Mathf.Lerp(0.3f, 5f, sens.Value);
             if (bright.Tick()) Settings.Brightness = bright.Value;
-            if (quality.Tick()) { Settings.Quality = (Settings.Quality + 1) % 3; Settings.Apply(); Labels(); }
             if (vhs.Tick()) { Settings.Vhs = (Settings.Vhs + 1) % 3; Settings.Apply(); Labels(); }
             if (full.Tick()) { Settings.Fullscreen = !Settings.Fullscreen; Settings.Apply(); Labels(); }
             if (lang.Tick()) { Settings.Language = Settings.Language == Lang.ES ? Lang.EN : Lang.ES; Settings.Apply(); Labels(); }

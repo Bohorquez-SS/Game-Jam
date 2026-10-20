@@ -27,7 +27,7 @@ namespace GNight
             yield return R.player.MoveCamera(R.poseBedSit.position, R.poseBedSit.eulerAngles.y, 12f, 0.95f, 0f, 1.6f);
             yield return Wait(0.6f);
             H.Say(You, T("Pasos... en el pasillo.", "Footsteps... in the hallway."), 3f);
-            yield return Wait(2.5f);
+            yield return VoiceBank.Wait(2.5f);
             P.Receive(PhoneSystem.Mama, MomBolt);
             GameClock.Set(0, 21);
             yield return Wait(2f);
@@ -97,12 +97,21 @@ namespace GNight
             GameClock.Set(0, 24);
             yield return Wait(2.5f);
             H.Say(You, T("Yo no la llamé. Y si está en el trabajo... ¿quién está en la puerta?", "I didn't call her. And if she's at work... who's at the door?"), 4.5f);
-            yield return Wait(3.5f);
+            yield return VoiceBank.Wait(3.5f);
             A.PlayVoiceExact(Voice.Mom, src, 1f);
             H.Say(T("¿Mamá? (afuera)", "Mom? (outside)"), T("¿Por qué no me abres? ...Sé que estás despierto.", "Why won't you open? ...I know you're awake."), 4f);
             A.At(A.handleRattle, src + Vector3.forward * 0.5f, 1f);
-            yield return Wait(2f);
+            yield return Wait(2.6f);
+            if (Has("openedToMom")) yield break;
+            // la voz empieza a deformarse (mismo timbre, cada vez más grave y extraño)
+            A.PlayVoiceExact(Voice.Mom, src, 0.9f);
+            H.Say(T("¿Mamá? (afuera)", "Mom? (outside)"), T("Abre la puerta... te estoy diciendo que abras.", "Open the door... I'm telling you to open it."), 3.5f);
+            yield return VoiceBank.Wait(3.8f);
+            if (Has("openedToMom")) yield break;
             A.At(A.handleRattle, src + Vector3.forward * 0.5f, 1f);
+            Knock(src, 1f);
+            A.PlayVoiceExact(Voice.Mom, src, 1f);
+            H.Say(T("¿Mamá? (afuera)", "Mom? (outside)"), T("¡ABRE LA PUERTA!", "OPEN THE DOOR!"), 2.5f);
             CameraFX.Shake(0.12f);
             yield return Wait(4f);
             // silencio... y algo rodea la casa
@@ -142,7 +151,7 @@ namespace GNight
             // la voz, ahora pegada a tu oído
             A.PlayVoiceExact(Voice.Mom, R.player.EyePosition + R.player.transform.right * 0.4f, 0.75f);
             H.Say(T("¿Mamá?", "Mom?"), T("Gracias por abrirme.", "Thank you for letting me in."), 1.6f);
-            yield return Wait(0.9f);
+            yield return VoiceBank.Wait(0.9f);
             PlayerController.CutsceneLock = false;
             GameManager.I.Die(T("\"Mamá estaba en el trabajo. Lo sabías.\"", "\"Mom was at work. You knew that.\""), outside + (doorway - outside) * 0.2f);
         }
@@ -202,7 +211,7 @@ namespace GNight
             R.cameraDesk.Select(1);
             yield return Wait(2.6f);
             H.Say(You, T("La puerta del baño está abierta... yo la dejé cerrada.", "The bathroom door is open... I left it closed."), 3.5f);
-            yield return Wait(2f);
+            yield return VoiceBank.Wait(2f);
             H.Say(You, T("Arriba dice REC. ¿Es una grabación?", "It says REC up there. Is this a recording?"), 3f);
             Set("camDoubt");
             yield return WaitFocusClosed();

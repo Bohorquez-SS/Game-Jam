@@ -23,7 +23,7 @@ namespace GNight
             Sensitivity = PlayerPrefs.GetFloat("gn_sens", 2f);
             Brightness = PlayerPrefs.GetFloat("gn_bright", 0.5f);
             Fullscreen = PlayerPrefs.GetInt("gn_full", 1) == 1;
-            Quality = PlayerPrefs.GetInt("gn_quality_v3", 2);
+            Quality = 2;   // (18/10) siempre ALTA: ya no hay selector y se ignora cualquier preferencia vieja
             Vhs = PlayerPrefs.GetInt("gn_vhs", 1);
             Language = (Lang)PlayerPrefs.GetInt("gn_lang", 0);
             Apply();

@@ -66,6 +66,10 @@ namespace GNight
         {
             I = this;
             RoomZone.All = zones;
+            // (18/10) doble sin "joroba" y Sujeto 0 con el rostro del espejo
+            Material faceMat = null;
+            if (mirror != null && mirror.scareFace != null) { var fr = mirror.scareFace.GetComponent<Renderer>(); if (fr) faceMat = fr.sharedMaterial; }
+            try { CharacterFix.Apply(faceMat); } catch (System.Exception ex) { Debug.LogWarning("[GOOD NIGHT] CharacterFix: " + ex.Message); }
         }
     }
 }

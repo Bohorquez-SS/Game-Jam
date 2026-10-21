@@ -5,8 +5,8 @@ namespace GNight
 {
     /// <summary>
     /// Dos finales.
-    /// A «Buenos días» — aíslas la cocina: sales al amanecer, llega mamá… y la cámara muestra a quién encerraste (SUJETO 1, autorizado).
-    /// B «Buenas noches» (verdadero) — te aíslas tú (SUJETO 2): la puerta 06 se cierra, los monitores muestran al hijo real saliendo hacia el auto de mamá.
+    /// A «Buenos días» — aíslas al doble; sales al amanecer y GUARDIÁN informa original contenido / reconstrucción liberada.
+    /// B «Buenas noches» — te aíslas tú y sale la otra identidad; el análisis final de origen es inconcluso.
     /// </summary>
     public class EndingManager : MonoBehaviour
     {
@@ -142,7 +142,7 @@ namespace GNight
             h.Say("GUARDIÁN", T("Protocolo completado. Sujeto original contenido. Copia liberada.", "Protocol complete. Original subject contained. Copy released."), 3.5f);
         }
 
-        // ------------------------------------------------------------------ FINAL B (verdadero)
+        // ------------------------------------------------------------------ FINAL B
         public IEnumerator PlayB()
         {
             if (playing) yield break;
@@ -163,7 +163,7 @@ namespace GNight
             r.doorMetal.locked = true;
             LightingManager.I.SetEmergency(false);
             yield return new WaitForSeconds(2f);
-            // los monitores: la cocina se abre; el hijo real sale
+            // los monitores: la cocina se abre; sale la otra identidad
             var kc = SecurityCameraSystem.I.ByZone("cocina");
             foreach (var m in r.secretMonitors) { m.source = kc; m.showStatic = false; m.message = null; m.SetOn(true); }
             r.bolt.SetGuardianLock(false); r.bolt.SetKeyLocked(false); r.bolt.SetClosed(false);
